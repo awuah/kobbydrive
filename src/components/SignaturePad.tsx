@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { RotateCcw, PenTool, Check, Image as ImageIcon } from "lucide-react";
@@ -19,7 +19,7 @@ export default function SignaturePad({ value, onChange, disabled }: SignaturePad
   const setupCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
 
     const dpr = window.devicePixelRatio || 1;
@@ -48,7 +48,7 @@ export default function SignaturePad({ value, onChange, disabled }: SignaturePad
     if (value && !hasSignature) {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
       if (!ctx) return;
 
       const img = new Image();
@@ -66,7 +66,7 @@ export default function SignaturePad({ value, onChange, disabled }: SignaturePad
   const saveHistory = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
@@ -99,7 +99,7 @@ export default function SignaturePad({ value, onChange, disabled }: SignaturePad
     saveHistory();
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
 
     const { x, y } = getCoordinates(e);
@@ -113,7 +113,7 @@ export default function SignaturePad({ value, onChange, disabled }: SignaturePad
     if (e.cancelable) e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
 
     const { x, y } = getCoordinates(e);
@@ -134,7 +134,7 @@ export default function SignaturePad({ value, onChange, disabled }: SignaturePad
   const clearCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
