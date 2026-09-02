@@ -1,10 +1,10 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "KobbyDrive - Free Driving School Program Portal",
+  title: "Kobby Free Driving School - Application Portal",
   description:
     "Official application portal for the Free Driving School initiative. Empowering future drivers with certified driving education and road safety skills.",
 };

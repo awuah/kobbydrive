@@ -19,11 +19,8 @@ export default function Header() {
             />
           </div>
           <div>
-            <span className="font-bold text-lg text-slate-900 tracking-tight flex items-center gap-1.5">
-              Kobby<span className="text-brand-600">Drive</span>
-              <span className="text-[10px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-full bg-brand-100 text-brand-800 border border-brand-200">
-                Free Program
-              </span>
+            <span className="font-bold text-base sm:text-lg text-slate-900 tracking-tight flex items-center gap-1.5">
+              Kobby <span className="text-brand-600">Free Driving School</span>
             </span>
             <p className="text-xs text-slate-500 hidden sm:block">Empowering Future Drivers</p>
           </div>
