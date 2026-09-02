@@ -1,6 +1,7 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
 import { generateApplicationNumber } from "@/lib/utils";
+import { sendApplicationReceivedSMS } from "@/lib/sms";
 
 export async function POST(req: NextRequest) {
   try {
@@ -90,6 +91,31 @@ export async function POST(req: NextRequest) {
         performed_by: "applicant",
       },
     ]);
+
+    // Send immediate SMS notification via Arkesel (Sender ID: KOBBYMP)
+    try {
+      const smsResult = await sendApplicationReceivedSMS({
+        title: title?.trim(),
+        surname: surname.trim(),
+        last_name: last_name.trim(),
+        phone_number: phone_number.trim(),
+        application_number: data.application_number,
+      });
+
+      // Log SMS status
+      await supabase.from("kbdr_application_logs").insert([
+        {
+          application_id: data.id,
+          action: "sms_sent",
+          notes: smsResult.success
+            ? `Confirmation SMS sent to ${phone_number.trim()} via KOBBYMP.`
+            : `Failed to send SMS: ${smsResult.error || "Unknown error"}`,
+          performed_by: "system",
+        },
+      ]);
+    } catch (smsErr) {
+      console.error("SMS notification trigger failed:", smsErr);
+    }
 
     return NextResponse.json(
       {
