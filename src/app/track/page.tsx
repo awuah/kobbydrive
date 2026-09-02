@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
@@ -235,11 +235,17 @@ function TrackContent() {
                 </div>
 
                 {/* Dossier Information Summary */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-100 text-xs">
                   <div>
                     <span className="text-slate-400 block">ID Document</span>
                     <span className="font-semibold text-slate-800">
                       {app.id_type}: {app.id_number}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block">Training Purpose</span>
+                    <span className="font-semibold text-brand-700">
+                      {app.training_purpose || "Personal"}
                     </span>
                   </div>
                   <div>

@@ -231,6 +231,13 @@ export default function ApplicationDetailsModal({
                     </a>
                   </div>
 
+                  <div className="flex justify-between py-1 border-b border-slate-50">
+                    <span className="text-slate-500 font-medium">Training Purpose</span>
+                    <span className="font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
+                      {application.training_purpose || "Personal"}
+                    </span>
+                  </div>
+
                   <div className="py-1 border-b border-slate-50">
                     <span className="text-slate-500 font-medium block mb-0.5">10. House / Residential Address</span>
                     <span className="font-medium text-slate-900">{application.house_address}</span>

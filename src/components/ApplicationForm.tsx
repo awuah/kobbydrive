@@ -36,6 +36,7 @@ interface FormState {
   nationality: string;
   email: string;
   phone_number: string;
+  training_purpose: string;
   signature_data: string;
   agreed_terms: boolean;
 }
@@ -54,6 +55,7 @@ const initialFormState: FormState = {
   nationality: "Ghanaian",
   email: "",
   phone_number: "",
+  training_purpose: "Personal",
   signature_data: "",
   agreed_terms: false,
 };
@@ -95,6 +97,8 @@ export default function ApplicationForm() {
     if (!form.email.trim() || !form.email.includes("@")) return "Please provide a valid Email Address.";
     if (!form.phone_number.trim() || form.phone_number.length < 8)
       return "Please provide a valid Phone Number.";
+    if (!form.training_purpose)
+      return "Please select what you will use the driver training for.";
     if (!form.signature_data) return "Digital signature is required. Please sign in the box below.";
     if (!form.agreed_terms)
       return "Please agree to the declaration and program terms before submitting.";
@@ -238,6 +242,10 @@ export default function ApplicationForm() {
                 <div>
                   <span className="text-slate-500 text-xs block">Email Address</span>
                   <span className="font-medium text-slate-800">{submittedData.form.email}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 text-xs block">Training Purpose</span>
+                  <span className="font-semibold text-brand-700">{submittedData.form.training_purpose}</span>
                 </div>
                 <div className="sm:col-span-2">
                   <span className="text-slate-500 text-xs block">House / Residential Address</span>
@@ -564,11 +572,77 @@ export default function ApplicationForm() {
         </div>
       </div>
 
-      {/* Section 4: Signature & Declaration */}
+      {/* Section 4: Training Purpose */}
       <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
         <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
           <div className="w-10 h-10 rounded-xl bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-700 font-bold">
             4
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">Driver Training Objective</h3>
+            <p className="text-xs text-slate-500">Specify your intended application and career goal for this training</p>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-3">
+            What will you use the driver training for? <span className="text-rose-500">*</span>
+          </label>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[
+              { id: "Personal", letter: "A", label: "Personal", desc: "Private driving for daily commutes and family use" },
+              { id: "Commercial Driver", letter: "B", label: "Commercial Driver", desc: "Taxi, ride-hailing, trotro, bus, or haulage transport" },
+              { id: "Agricultural", letter: "C", label: "Agricultural", desc: "Farm machinery, tractors, and agricultural logistics" },
+              { id: "Private", letter: "D", label: "Private", desc: "Dedicated personal / corporate chauffeur and executive transport" },
+              { id: "Equipment Handling", letter: "E", label: "Equipment Handling", desc: "Forklifts, earthmovers, construction, and heavy machinery" },
+            ].map((opt) => {
+              const isSelected = form.training_purpose === opt.id;
+              return (
+                <label
+                  key={opt.id}
+                  className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between select-none ${
+                    isSelected
+                      ? "border-brand-600 bg-brand-50/50 ring-2 ring-brand-500/20 shadow-sm"
+                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span
+                      className={`w-6 h-6 rounded-lg text-xs font-extrabold flex items-center justify-center ${
+                        isSelected
+                          ? "bg-brand-600 text-white"
+                          : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      {opt.letter}
+                    </span>
+                    <input
+                      type="radio"
+                      name="training_purpose"
+                      value={opt.id}
+                      checked={isSelected}
+                      onChange={handleChange}
+                      className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-slate-900">{opt.label}</h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">{opt.desc}</p>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Section 5: Signature & Declaration */}
+      <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+        <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+          <div className="w-10 h-10 rounded-xl bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-700 font-bold">
+            5
           </div>
           <div>
             <h3 className="text-lg font-bold text-slate-900">Digital Signature & Declaration</h3>

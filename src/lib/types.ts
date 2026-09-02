@@ -1,4 +1,4 @@
-﻿export type ApplicationStatus =
+export type ApplicationStatus =
   | "pending"
   | "under_review"
   | "approved"
@@ -18,6 +18,13 @@ export type IdType =
   | "Driver's License / Permit"
   | "Other";
 
+export type TrainingPurposeType =
+  | "Personal"
+  | "Commercial Driver"
+  | "Agricultural"
+  | "Private"
+  | "Equipment Handling";
+
 export interface Application {
   id: string;
   application_number: string;
@@ -34,6 +41,7 @@ export interface Application {
   nationality: string;
   email: string;
   phone_number: string;
+  training_purpose?: TrainingPurposeType | string;
   signature_data: string;
   status: ApplicationStatus;
   admin_notes?: string;

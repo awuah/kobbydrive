@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
       nationality,
       email,
       phone_number,
+      training_purpose,
       signature_data,
     } = body;
 
@@ -36,6 +37,7 @@ export async function POST(req: NextRequest) {
       !house_address ||
       !email ||
       !phone_number ||
+      !training_purpose ||
       !signature_data
     ) {
       return NextResponse.json(
@@ -65,6 +67,7 @@ export async function POST(req: NextRequest) {
           nationality: nationality?.trim() || "Ghanaian",
           email: email.trim().toLowerCase(),
           phone_number: phone_number.trim(),
+          training_purpose: training_purpose?.trim() || "Personal",
           signature_data,
           status: "pending",
           admin_notes: "",
@@ -166,6 +169,7 @@ export async function GET(req: NextRequest) {
       nationality,
       email,
       phone_number,
+      training_purpose,
       status,
       created_at,
       updated_at
