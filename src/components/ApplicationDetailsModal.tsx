@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import { Application, ApplicationStatus } from "@/lib/types";
@@ -148,7 +148,7 @@ export default function ApplicationDetailsModal({
                 </div>
 
                 <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-slate-500 font-medium">2. Last Name / Other Names</span>
+                  <span className="text-slate-500 font-medium">2. First / Other Names</span>
                   <span className="font-semibold text-slate-900">{application.last_name}</span>
                 </div>
 

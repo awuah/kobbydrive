@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import SignaturePad from "./SignaturePad";
@@ -83,7 +83,7 @@ export default function ApplicationForm() {
 
   const validateForm = (): string | null => {
     if (!form.surname.trim()) return "Please enter your Surname.";
-    if (!form.last_name.trim()) return "Please enter your Last Name / Other Names.";
+    if (!form.last_name.trim()) return "Please enter your First / Other Names.";
     if (!form.gender) return "Please select your Gender.";
     if (!form.title) return "Please select your Title.";
     if (!form.id_type) return "Please select your ID Type.";
@@ -345,10 +345,10 @@ export default function ApplicationForm() {
             />
           </div>
 
-          {/* Last Name / First & Other Names */}
+          {/* First / Other Names */}
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-              2. Last Name / Other Names <span className="text-rose-500">*</span>
+              2. First / Other Names <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
