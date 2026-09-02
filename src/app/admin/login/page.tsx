@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -64,13 +64,12 @@ export default function AdminLoginPage() {
                 type="password"
                 value={passcode}
                 onChange={(e) => setPasscode(e.target.value)}
-                placeholder="Enter access code (default: admin2026)"
+                placeholder="Enter admin passcode"
                 className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500 text-sm font-medium"
                 required
                 autoFocus
               />
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">Default administrative pass: <code className="text-slate-600 font-mono">admin2026</code></p>
           </div>
 
           <button
