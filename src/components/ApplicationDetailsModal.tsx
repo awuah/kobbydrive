@@ -64,8 +64,12 @@ export default function ApplicationDetailsModal({
         {/* Header */}
         <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between no-print shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-brand-500/20 border border-brand-500/40 flex items-center justify-center text-brand-400 font-bold">
-              KBD
+            <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-700 bg-white flex items-center justify-center shrink-0">
+              <img
+                src="/logo.png"
+                alt="KobbyDrive Logo"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
               <h2 className="text-base font-bold text-white flex items-center gap-2">
@@ -96,9 +100,18 @@ export default function ApplicationDetailsModal({
         {/* Printable Official Header (visible during print) */}
         <div className="p-6 border-b border-slate-200 hidden print-only">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">KobbyDrive Free Driving School</h1>
-              <p className="text-xs text-slate-600">Official Candidate Application Record</p>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-300 bg-white flex items-center justify-center">
+                <img
+                  src="/logo.png"
+                  alt="KobbyDrive Logo"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-slate-900">KobbyDrive Free Driving School</h1>
+                <p className="text-xs text-slate-600">Official Candidate Application Record</p>
+              </div>
             </div>
             <div className="text-right">
               <span className="text-sm font-mono font-bold">{application.application_number}</span>

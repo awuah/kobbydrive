@@ -1,4 +1,4 @@
-﻿import ApplicationForm from "@/components/ApplicationForm";
+import ApplicationForm from "@/components/ApplicationForm";
 import {
   Car,
   CheckCircle2,
@@ -22,6 +22,16 @@ export default function HomePage() {
         <div className="absolute -top-10 right-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-6">
+          <div className="flex justify-center mb-2">
+            <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 bg-white p-1">
+              <img
+                src="/logo.png"
+                alt="KobbyDrive Logo"
+                className="w-full h-full object-cover rounded-xl"
+              />
+            </div>
+          </div>
+
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-300 text-xs sm:text-sm font-semibold tracking-wide">
             <Sparkles className="w-4 h-4 text-brand-400" />
             Official Sponsored Free Driving Initiative
