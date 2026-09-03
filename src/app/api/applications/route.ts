@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
       date_of_birth,
       place_of_birth,
       postal_address,
+      house_number,
       house_address,
       nationality,
       email,
@@ -35,6 +36,7 @@ export async function POST(req: NextRequest) {
       !id_number ||
       !date_of_birth ||
       !place_of_birth ||
+      !house_number ||
       !house_address ||
       !email ||
       !phone_number ||
@@ -65,6 +67,7 @@ export async function POST(req: NextRequest) {
           date_of_birth,
           place_of_birth: place_of_birth.trim(),
           postal_address: postal_address?.trim() || null,
+          house_number: house_number.trim(),
           house_address: house_address.trim(),
           nationality: nationality?.trim() || "Ghanaian",
           email: email.trim().toLowerCase(),
@@ -168,6 +171,7 @@ export async function GET(req: NextRequest) {
       id_number,
       date_of_birth,
       place_of_birth,
+      house_number,
       house_address,
       nationality,
       email,

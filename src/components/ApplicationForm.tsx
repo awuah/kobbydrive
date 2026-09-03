@@ -32,6 +32,7 @@ interface FormState {
   date_of_birth: string;
   place_of_birth: string;
   postal_address: string;
+  house_number: string;
   house_address: string;
   nationality: string;
   email: string;
@@ -52,6 +53,7 @@ const initialFormState: FormState = {
   date_of_birth: "",
   place_of_birth: "",
   postal_address: "",
+  house_number: "",
   house_address: "",
   nationality: "Ghanaian",
   email: "",
@@ -94,6 +96,7 @@ export default function ApplicationForm() {
     if (!form.id_number.trim()) return "Please provide your ID Number.";
     if (!form.date_of_birth) return "Please provide your Date of Birth.";
     if (!form.place_of_birth.trim()) return "Please enter your Place of Birth.";
+    if (!form.house_number.trim()) return "Please provide your House No.";
     if (!form.house_address.trim()) return "Please provide your House Address / Residential Address.";
     if (!form.nationality.trim()) return "Please provide your Nationality.";
     if (!form.email.trim() || !form.email.includes("@")) return "Please provide a valid Email Address.";
@@ -254,6 +257,10 @@ export default function ApplicationForm() {
                 <div>
                   <span className="text-slate-500 text-xs block">Takoradi Electoral Area</span>
                   <span className="font-semibold text-slate-900">{submittedData.form.electoral_area}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 text-xs block">House No.</span>
+                  <span className="font-semibold text-slate-900">{submittedData.form.house_number}</span>
                 </div>
                 <div className="sm:col-span-2">
                   <span className="text-slate-500 text-xs block">House / Residential Address</span>
@@ -562,17 +569,33 @@ export default function ApplicationForm() {
             />
           </div>
 
-          {/* House Address */}
+          {/* House No. */}
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-              10. House Address / Residential Address <span className="text-rose-500">*</span>
+              10. House No. <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="house_number"
+              value={form.house_number}
+              onChange={handleChange}
+              placeholder="e.g. H/No 24, Block C, or WS-123-4567"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm font-medium"
+              required
+            />
+          </div>
+
+          {/* House Address */}
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+              House Address / Street Name / Locality <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
               name="house_address"
               value={form.house_address}
               onChange={handleChange}
-              placeholder="e.g. H/No 24, Beach Road, Takoradi"
+              placeholder="e.g. Near Market Circle, Beach Road, Takoradi"
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm font-medium"
               required
             />

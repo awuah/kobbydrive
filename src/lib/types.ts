@@ -37,6 +37,7 @@ export interface Application {
   date_of_birth: string;
   place_of_birth: string;
   postal_address: string | null;
+  house_number?: string;
   house_address: string;
   nationality: string;
   email: string;

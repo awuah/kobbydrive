@@ -245,6 +245,11 @@ export default function ApplicationDetailsModal({
                     </span>
                   </div>
 
+                  <div className="flex justify-between py-1 border-b border-slate-50">
+                    <span className="text-slate-500 font-medium">House No.</span>
+                    <span className="font-semibold text-slate-900">{application.house_number || "N/A"}</span>
+                  </div>
+
                   <div className="py-1 border-b border-slate-50">
                     <span className="text-slate-500 font-medium block mb-0.5">10. House / Residential Address</span>
                     <span className="font-medium text-slate-900">{application.house_address}</span>

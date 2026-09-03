@@ -235,7 +235,7 @@ function TrackContent() {
                 </div>
 
                 {/* Dossier Information Summary */}
-                <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 pt-4 border-t border-slate-100 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-4 pt-4 border-t border-slate-100 text-xs">
                   <div>
                     <span className="text-slate-400 block">ID Document</span>
                     <span className="font-semibold text-slate-800">
@@ -246,6 +246,12 @@ function TrackContent() {
                     <span className="text-slate-400 block">Takoradi Locality</span>
                     <span className="font-semibold text-slate-800">
                       {app.electoral_area || "Amanful West"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block">House No.</span>
+                    <span className="font-semibold text-slate-800">
+                      {app.house_number || "N/A"}
                     </span>
                   </div>
                   <div>
