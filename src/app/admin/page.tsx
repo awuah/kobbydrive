@@ -178,6 +178,7 @@ export default function AdminDashboardPage() {
       "Phone Number",
       "Email",
       "Training Purpose",
+      "Takoradi Electoral Area",
       "House Address",
       "Postal Address",
       "Status",
@@ -199,6 +200,7 @@ export default function AdminDashboardPage() {
       `"${app.phone_number}"`,
       `"${app.email}"`,
       `"${(app.training_purpose || "Personal").replace(/"/g, '""')}"`,
+      `"${(app.electoral_area || "Amanful West").replace(/"/g, '""')}"`,
       `"${app.house_address.replace(/"/g, '""')}"`,
       `"${(app.postal_address || "").replace(/"/g, '""')}"`,
       `"${app.status}"`,
@@ -419,10 +421,13 @@ export default function AdminDashboardPage() {
                         <div className="font-bold text-slate-900">
                           {app.title} {app.surname} {app.last_name}
                         </div>
-                        <div className="flex items-center gap-1.5 mt-0.5">
+                        <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
                           <span className="text-[11px] text-slate-400">{app.nationality}</span>
                           <span className="text-[10px] font-semibold bg-brand-50 text-brand-700 px-1.5 py-0.5 rounded border border-brand-200">
                             {app.training_purpose || "Personal"}
+                          </span>
+                          <span className="text-[10px] font-semibold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded">
+                            📍 {app.electoral_area || "Amanful West"}
                           </span>
                         </div>
                       </td>

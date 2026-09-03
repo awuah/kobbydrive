@@ -238,6 +238,13 @@ export default function ApplicationDetailsModal({
                     </span>
                   </div>
 
+                  <div className="flex justify-between py-1 border-b border-slate-50">
+                    <span className="text-slate-500 font-medium">Takoradi Electoral Area</span>
+                    <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+                      {application.electoral_area || "Amanful West"}
+                    </span>
+                  </div>
+
                   <div className="py-1 border-b border-slate-50">
                     <span className="text-slate-500 font-medium block mb-0.5">10. House / Residential Address</span>
                     <span className="font-medium text-slate-900">{application.house_address}</span>

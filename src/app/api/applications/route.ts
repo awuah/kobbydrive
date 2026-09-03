@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
       nationality,
       email,
       phone_number,
+      electoral_area,
       training_purpose,
       signature_data,
     } = body;
@@ -37,6 +38,7 @@ export async function POST(req: NextRequest) {
       !house_address ||
       !email ||
       !phone_number ||
+      !electoral_area ||
       !training_purpose ||
       !signature_data
     ) {
@@ -67,6 +69,7 @@ export async function POST(req: NextRequest) {
           nationality: nationality?.trim() || "Ghanaian",
           email: email.trim().toLowerCase(),
           phone_number: phone_number.trim(),
+          electoral_area: electoral_area?.trim() || "Amanful West",
           training_purpose: training_purpose?.trim() || "Personal",
           signature_data,
           status: "pending",
@@ -169,6 +172,7 @@ export async function GET(req: NextRequest) {
       nationality,
       email,
       phone_number,
+      electoral_area,
       training_purpose,
       status,
       created_at,

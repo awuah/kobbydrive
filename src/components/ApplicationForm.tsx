@@ -36,6 +36,7 @@ interface FormState {
   nationality: string;
   email: string;
   phone_number: string;
+  electoral_area: string;
   training_purpose: string;
   signature_data: string;
   agreed_terms: boolean;
@@ -55,6 +56,7 @@ const initialFormState: FormState = {
   nationality: "Ghanaian",
   email: "",
   phone_number: "",
+  electoral_area: "",
   training_purpose: "Personal",
   signature_data: "",
   agreed_terms: false,
@@ -97,6 +99,8 @@ export default function ApplicationForm() {
     if (!form.email.trim() || !form.email.includes("@")) return "Please provide a valid Email Address.";
     if (!form.phone_number.trim() || form.phone_number.length < 8)
       return "Please provide a valid Phone Number.";
+    if (!form.electoral_area)
+      return "Please select where you live or vote in Takoradi constituency.";
     if (!form.training_purpose)
       return "Please select what you will use the driver training for.";
     if (!form.signature_data) return "Digital signature is required. Please sign in the box below.";
@@ -246,6 +250,10 @@ export default function ApplicationForm() {
                 <div>
                   <span className="text-slate-500 text-xs block">Training Purpose</span>
                   <span className="font-semibold text-brand-700">{submittedData.form.training_purpose}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 text-xs block">Takoradi Electoral Area</span>
+                  <span className="font-semibold text-slate-900">{submittedData.form.electoral_area}</span>
                 </div>
                 <div className="sm:col-span-2">
                   <span className="text-slate-500 text-xs block">House / Residential Address</span>
@@ -549,7 +557,7 @@ export default function ApplicationForm() {
               name="postal_address"
               value={form.postal_address}
               onChange={handleChange}
-              placeholder="e.g. P.O. Box 1234, Accra"
+              placeholder="e.g. P.O. Box 1234, Takoradi"
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm font-medium"
             />
           </div>
@@ -564,10 +572,50 @@ export default function ApplicationForm() {
               name="house_address"
               value={form.house_address}
               onChange={handleChange}
-              placeholder="e.g. H/No 24, Mango Tree Ave, East Legon, Accra"
+              placeholder="e.g. H/No 24, Beach Road, Takoradi"
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm font-medium"
               required
             />
+          </div>
+
+          {/* Where do you live or vote in Takoradi Constituency */}
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+              Where do you live or vote in Takoradi Constituency? <span className="text-rose-500">*</span>
+            </label>
+            <div className="relative">
+              <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none" />
+              <select
+                name="electoral_area"
+                value={form.electoral_area}
+                onChange={handleChange}
+                className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm font-medium"
+                required
+              >
+                <option value="" disabled>
+                  -- Select where you live or vote in Takoradi --
+                </option>
+                <option value="Amanful West">1. Amanful West</option>
+                <option value="Amanful East">2. Amanful East</option>
+                <option value="Beach Road">3. Beach Road</option>
+                <option value="Essikafo Ambitem No. 1">4. Essikafo Ambitem No. 1</option>
+                <option value="Essikafo Ambitem No. 2">5. Essikafo Ambitem No. 2</option>
+                <option value="Chapel Hill">6. Chapel Hill</option>
+                <option value="Railway & Harbour">7. Railway & Harbour</option>
+                <option value="New-Takoradi Lower">8. New-Takoradi Lower</option>
+                <option value="Poasi - Upper New-Takoradi">9. Poasi - Upper New-Takoradi</option>
+                <option value="Airforce">10. Airforce</option>
+                <option value="Old Adra">11. Old Adra</option>
+                <option value="Cassava Farm">12. Cassava Farm</option>
+                <option value="Zenith">13. Zenith</option>
+                <option value="Airport Ridge">14. Airport Ridge</option>
+                <option value="Presby">15. Presby</option>
+                <option value="Other">16. Other</option>
+              </select>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1">
+              Select your local voting electoral area or resident locality within Takoradi constituency
+            </p>
           </div>
         </div>
       </div>
