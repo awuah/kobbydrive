@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
 import { generateApplicationNumber } from "@/lib/utils";
 import { sendApplicationReceivedSMS } from "@/lib/sms";
+import { sendApplicationEmailNotification } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,6 +24,7 @@ export async function POST(req: NextRequest) {
       phone_number,
       electoral_area,
       training_purpose,
+      passport_photo,
       signature_data,
     } = body;
 
@@ -42,10 +44,11 @@ export async function POST(req: NextRequest) {
       !phone_number ||
       !electoral_area ||
       !training_purpose ||
+      !passport_photo ||
       !signature_data
     ) {
       return NextResponse.json(
-        { success: false, error: "All required fields must be provided." },
+        { success: false, error: "All required fields must be provided, including your passport photograph." },
         { status: 400 }
       );
     }
@@ -74,6 +77,7 @@ export async function POST(req: NextRequest) {
           phone_number: phone_number.trim(),
           electoral_area: electoral_area?.trim() || "Amanful West",
           training_purpose: training_purpose?.trim() || "Personal",
+          passport_photo,
           signature_data,
           status: "pending",
           admin_notes: "",
@@ -124,6 +128,46 @@ export async function POST(req: NextRequest) {
       ]);
     } catch (smsErr) {
       console.error("SMS notification trigger failed:", smsErr);
+    }
+
+    // Send copy of submission to info@kobbydogood.org
+    try {
+      const emailResult = await sendApplicationEmailNotification({
+        application_number: data.application_number,
+        title: title?.trim(),
+        surname: surname.trim(),
+        last_name: last_name.trim(),
+        gender: gender.trim(),
+        id_type: id_type.trim(),
+        id_number: id_number.trim(),
+        date_of_birth,
+        place_of_birth: place_of_birth.trim(),
+        nationality: nationality?.trim() || "Ghanaian",
+        phone_number: phone_number.trim(),
+        email: email.trim().toLowerCase(),
+        house_number: house_number.trim(),
+        house_address: house_address.trim(),
+        postal_address: postal_address?.trim() || null,
+        electoral_area: electoral_area?.trim() || "Amanful West",
+        training_purpose: training_purpose?.trim() || "Personal",
+        passport_photo,
+        signature_data,
+        created_at: data.created_at,
+      });
+
+      // Log Email notification status
+      await supabase.from("kbdr_application_logs").insert([
+        {
+          application_id: data.id,
+          action: "email_sent",
+          notes: emailResult.success
+            ? "Submission copy dispatched to info@kobbydogood.org."
+            : `Email delivery attempt: ${emailResult.error || "Logged"}`,
+          performed_by: "system",
+        },
+      ]);
+    } catch (emailErr) {
+      console.error("Email notification trigger failed:", emailErr);
     }
 
     return NextResponse.json(
@@ -178,6 +222,7 @@ export async function GET(req: NextRequest) {
       phone_number,
       electoral_area,
       training_purpose,
+      passport_photo,
       status,
       created_at,
       updated_at

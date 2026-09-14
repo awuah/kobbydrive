@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import SignaturePad from "./SignaturePad";
+import PassportPhotoUpload from "./PassportPhotoUpload";
 import {
   Car,
   CheckCircle2,
@@ -18,6 +19,7 @@ import {
   Printer,
   Copy,
   ArrowRight,
+  Camera,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import Link from "next/link";
@@ -39,6 +41,7 @@ interface FormState {
   phone_number: string;
   electoral_area: string;
   training_purpose: string;
+  passport_photo: string;
   signature_data: string;
   agreed_terms: boolean;
 }
@@ -60,6 +63,7 @@ const initialFormState: FormState = {
   phone_number: "",
   electoral_area: "",
   training_purpose: "Personal",
+  passport_photo: "",
   signature_data: "",
   agreed_terms: false,
 };
@@ -106,6 +110,8 @@ export default function ApplicationForm() {
       return "Please select where you live or vote in Takoradi constituency.";
     if (!form.training_purpose)
       return "Please select what you will use the driver training for.";
+    if (!form.passport_photo)
+      return "Passport photograph is required. Please upload your passport picture.";
     if (!form.signature_data) return "Digital signature is required. Please sign in the box below.";
     if (!form.agreed_terms)
       return "Please agree to the declaration and program terms before submitting.";
@@ -213,9 +219,20 @@ export default function ApplicationForm() {
 
             {/* Applicant Summary Dossier */}
             <div className="border border-slate-200 rounded-xl p-6 space-y-4">
-              <h3 className="font-semibold text-slate-900 text-base border-b border-slate-100 pb-2 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-brand-600" /> Applicant Summary Slip
-              </h3>
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="font-semibold text-slate-900 text-base flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-brand-600" /> Applicant Summary Slip
+                </h3>
+                {submittedData.form.passport_photo && (
+                  <div className="w-12 h-14 rounded-lg overflow-hidden border border-slate-200 shadow-sm bg-white">
+                    <img
+                      src={submittedData.form.passport_photo}
+                      alt="Passport Photo"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
@@ -331,6 +348,18 @@ export default function ApplicationForm() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {/* Passport Photo Upload */}
+          <div className="sm:col-span-2 lg:col-span-3 pb-3 border-b border-slate-100">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-2">
+              Applicant Passport Picture / Photo <span className="text-rose-500">*</span>
+            </label>
+            <PassportPhotoUpload
+              value={form.passport_photo}
+              onChange={(photo) => setForm((prev) => ({ ...prev, passport_photo: photo }))}
+              disabled={loading}
+            />
+          </div>
+
           {/* Title */}
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">

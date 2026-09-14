@@ -420,17 +420,34 @@ export default function AdminDashboardPage() {
                       </td>
 
                       <td className="p-4">
-                        <div className="font-bold text-slate-900">
-                          {app.title} {app.surname} {app.last_name}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                          <span className="text-[11px] text-slate-400">{app.nationality}</span>
-                          <span className="text-[10px] font-semibold bg-brand-50 text-brand-700 px-1.5 py-0.5 rounded border border-brand-200">
-                            {app.training_purpose || "Personal"}
-                          </span>
-                          <span className="text-[10px] font-semibold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded">
-                            📍 {app.electoral_area || "Amanful West"}
-                          </span>
+                        <div className="flex items-center gap-3">
+                          {app.passport_photo ? (
+                            <div className="w-9 h-11 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 shrink-0 shadow-xs">
+                              <img
+                                src={app.passport_photo}
+                                alt="Applicant Photo"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-9 h-11 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0 text-[10px] font-bold">
+                              KBD
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-bold text-slate-900">
+                              {app.title} {app.surname} {app.last_name}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                              <span className="text-[11px] text-slate-400">{app.nationality}</span>
+                              <span className="text-[10px] font-semibold bg-brand-50 text-brand-700 px-1.5 py-0.5 rounded border border-brand-200">
+                                {app.training_purpose || "Personal"}
+                              </span>
+                              <span className="text-[10px] font-semibold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded">
+                                📍 {app.electoral_area || "Amanful West"}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </td>
 

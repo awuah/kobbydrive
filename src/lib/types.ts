@@ -44,6 +44,7 @@ export interface Application {
   phone_number: string;
   training_purpose?: TrainingPurposeType | string;
   electoral_area?: string;
+  passport_photo?: string;
   signature_data: string;
   status: ApplicationStatus;
   admin_notes?: string;

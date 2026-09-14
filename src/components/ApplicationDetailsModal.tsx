@@ -150,9 +150,28 @@ export default function ApplicationDetailsModal({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Card: Personal & Identification */}
             <div className="border border-slate-200 rounded-xl p-5 space-y-4 bg-white shadow-sm">
-              <h3 className="font-bold text-slate-900 text-sm border-b border-slate-100 pb-2.5 flex items-center gap-2">
-                <User className="w-4 h-4 text-brand-600" /> 1. Personal & Identity Profile
-              </h3>
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                  <User className="w-4 h-4 text-brand-600" /> 1. Personal & Identity Profile
+                </h3>
+                {application.passport_photo && (
+                  <span className="text-[10px] font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
+                    Photo Attached
+                  </span>
+                )}
+              </div>
+
+              {application.passport_photo && (
+                <div className="flex justify-center pb-2 border-b border-slate-50">
+                  <div className="w-24 h-32 rounded-xl overflow-hidden border-2 border-slate-200 shadow-sm bg-slate-50">
+                    <img
+                      src={application.passport_photo}
+                      alt={`${application.surname} Passport Photo`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-3 text-xs">
                 <div className="flex justify-between py-1 border-b border-slate-50">
