@@ -13,6 +13,14 @@ function isAuthenticated(req: NextRequest): boolean {
 
 export async function GET(req: NextRequest) {
   try {
+    const auth = getAdminFromRequest(req);
+    if (!auth.isAuthenticated) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized access: Passcode is invalid or has been revoked." },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
     const search = searchParams.get("search") || "";
@@ -167,6 +175,13 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const auth = getAdminFromRequest(req);
+    if (!auth.isAuthenticated) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized access: Passcode is invalid or has been revoked." },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
     const { id, status, admin_notes, action, batchIds } = body;
 
@@ -330,6 +345,13 @@ export async function PATCH(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const auth = getAdminFromRequest(req);
+    if (!auth.isAuthenticated) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized access: Passcode is invalid or has been revoked." },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 

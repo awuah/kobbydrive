@@ -7,7 +7,7 @@ import { formatApplicationStatus, formatDate, formatDateTime } from "@/lib/utils
 import AdminStats from "@/components/AdminStats";
 import ApplicationDetailsModal from "@/components/ApplicationDetailsModal";
 import AdminActivityLogs from "@/components/AdminActivityLogs";
-import { isSuperAdminPasscode, getAdminIdentity, AdminIdentity } from "@/lib/auth";
+import { isSuperAdminPasscode, isValidAdminPasscode, getAdminIdentity, AdminIdentity } from "@/lib/auth";
 import {
   Shield,
   Search,
@@ -69,20 +69,33 @@ export default function AdminDashboardPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [batchLoading, setBatchLoading] = useState(false);
 
-  // Authentication check
+  // Authentication check & session validation
   useEffect(() => {
     if (typeof window !== "undefined") {
       const auth = localStorage.getItem("kbdr_admin_authenticated");
       const pass = localStorage.getItem("kbdr_admin_pass") || "";
-      if (auth !== "true" || !pass) {
+      const clean = pass.replace(/[\s-]/g, "").toLowerCase();
+
+      // Immediate eviction if legacy admin2026 or invalid passcode
+      if (
+        auth !== "true" ||
+        !pass ||
+        clean === "admin2026" ||
+        !isValidAdminPasscode(pass)
+      ) {
+        localStorage.removeItem("kbdr_admin_authenticated");
+        localStorage.removeItem("kbdr_admin_pass");
+        localStorage.removeItem("kbdr_admin_role");
+        document.cookie = "kbdr_admin_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         router.push("/admin/login");
-      } else {
-        setAdminPasscode(pass);
-        const identity = getAdminIdentity(pass);
-        setAdminIdentity(identity);
-        setIsSuperAdmin(isSuperAdminPasscode(pass));
-        setIsAuthenticated(true);
+        return;
       }
+
+      setAdminPasscode(pass);
+      const identity = getAdminIdentity(pass);
+      setAdminIdentity(identity);
+      setIsSuperAdmin(isSuperAdminPasscode(pass));
+      setIsAuthenticated(true);
     }
   }, [router]);
 
@@ -100,6 +113,16 @@ export default function AdminDashboardPage() {
           Authorization: `Bearer ${adminPasscode}`,
         },
       });
+
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem("kbdr_admin_authenticated");
+        localStorage.removeItem("kbdr_admin_pass");
+        localStorage.removeItem("kbdr_admin_role");
+        document.cookie = "kbdr_admin_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        router.push("/admin/login");
+        return;
+      }
+
       const data = await res.json();
 
       if (data.success) {
@@ -113,7 +136,7 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, searchQuery, currentPage, pageSize, adminPasscode]);
+  }, [statusFilter, searchQuery, currentPage, pageSize, adminPasscode, router]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -144,6 +167,11 @@ export default function AdminDashboardPage() {
       body: JSON.stringify({ id, status: newStatus, admin_notes: notes }),
     });
 
+    if (res.status === 401 || res.status === 403) {
+      handleLogout();
+      return;
+    }
+
     const data = await res.json();
     if (data.success) {
       // Update local state
@@ -173,6 +201,12 @@ export default function AdminDashboardPage() {
         },
         body: JSON.stringify({ batchIds: selectedIds, status }),
       });
+
+      if (res.status === 401 || res.status === 403) {
+        handleLogout();
+        return;
+      }
+
       const data = await res.json();
       if (data.success) {
         setSelectedIds([]);

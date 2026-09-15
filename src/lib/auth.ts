@@ -51,6 +51,11 @@ export function getAdminIdentity(passcode: string): AdminIdentity {
 
   const clean = passcode.replace(/[\s-]/g, "").toUpperCase();
 
+  // Explicitly reject disabled legacy passcode
+  if (clean === "ADMIN2026") {
+    return { id: "revoked", name: "Revoked (admin2026)", code: "ADMIN2026", role: "admin", color: "rose" };
+  }
+
   // 1. Superadmin check
   if (
     clean === "KOBBY9900SUPER" ||
