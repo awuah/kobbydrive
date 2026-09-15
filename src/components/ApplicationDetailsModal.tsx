@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Application, ApplicationStatus } from "@/lib/types";
 import { formatApplicationStatus, formatDate, formatDateTime } from "@/lib/utils";
 import {
@@ -29,14 +29,36 @@ interface ApplicationDetailsModalProps {
 }
 
 export default function ApplicationDetailsModal({
-  application,
+  application: initialApp,
   onClose,
   onUpdateStatus,
 }: ApplicationDetailsModalProps) {
-  const [selectedStatus, setSelectedStatus] = useState<ApplicationStatus>(application.status);
-  const [adminNotes, setAdminNotes] = useState(application.admin_notes || "");
+  const [application, setApplication] = useState<Application>(initialApp);
+  const [selectedStatus, setSelectedStatus] = useState<ApplicationStatus>(initialApp.status);
+  const [adminNotes, setAdminNotes] = useState(initialApp.admin_notes || "");
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateSuccess, setUpdateSuccess] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchFullDetails = async () => {
+      if (!initialApp.id) return;
+      try {
+        const res = await fetch(`/api/admin?id=${initialApp.id}`);
+        const result = await res.json();
+        if (isMounted && result.success && result.data) {
+          setApplication(result.data);
+        }
+      } catch (err) {
+        console.error("Failed to load detailed record:", err);
+      }
+    };
+
+    fetchFullDetails();
+    return () => {
+      isMounted = false;
+    };
+  }, [initialApp.id]);
 
   const statusInfo = formatApplicationStatus(application.status);
 

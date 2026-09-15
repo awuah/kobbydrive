@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
 import { DashboardStats } from "@/lib/types";
 
@@ -19,14 +19,70 @@ function isAuthenticated(req: NextRequest): boolean {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "all";
 
     const supabase = getServiceSupabase();
 
+    // 1. Single Application Detailed View (with signature and audit logs)
+    if (id) {
+      const { data: application, error: appError } = await supabase
+        .from("kbdr_applications")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (appError) {
+        return NextResponse.json({ success: false, error: appError.message }, { status: 404 });
+      }
+
+      const { data: logs } = await supabase
+        .from("kbdr_application_logs")
+        .select("*")
+        .eq("application_id", id)
+        .order("created_at", { ascending: false });
+
+      return NextResponse.json(
+        {
+          success: true,
+          data: application,
+          logs: logs || [],
+        },
+        { status: 200 }
+      );
+    }
+
+    // 2. Applications Listing (optimized lightweight query excluding heavy signature base64)
+    const listFields = `
+      id,
+      application_number,
+      surname,
+      last_name,
+      title,
+      gender,
+      id_type,
+      id_number,
+      date_of_birth,
+      place_of_birth,
+      postal_address,
+      house_number,
+      house_address,
+      nationality,
+      email,
+      phone_number,
+      electoral_area,
+      training_purpose,
+      passport_photo,
+      status,
+      admin_notes,
+      created_at,
+      updated_at
+    `;
+
     let query = supabase
       .from("kbdr_applications")
-      .select("*")
+      .select(listFields)
       .order("created_at", { ascending: false });
 
     if (status && status !== "all") {
@@ -47,8 +103,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    // Also calculate dashboard statistics across all records
-    const { data: allStatsRows, error: statsError } = await supabase
+    // Calculate dashboard statistics across all records
+    const { data: allStatsRows } = await supabase
       .from("kbdr_applications")
       .select("status, created_at");
 
