@@ -18,6 +18,8 @@ import {
   LogOut,
   SlidersHorizontal,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   UserCheck,
   AlertCircle,
   Loader2,
@@ -46,6 +48,12 @@ export default function AdminDashboardPage() {
   const [genderFilter, setGenderFilter] = useState("all");
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
 
+  // Pagination state (default: 50 records per page)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [batchLoading, setBatchLoading] = useState(false);
 
@@ -67,12 +75,16 @@ export default function AdminDashboardPage() {
       const params = new URLSearchParams();
       if (statusFilter && statusFilter !== "all") params.append("status", statusFilter);
       if (searchQuery.trim()) params.append("search", searchQuery.trim());
+      params.append("page", currentPage.toString());
+      params.append("limit", pageSize.toString());
 
       const res = await fetch(`/api/admin?${params.toString()}`);
       const data = await res.json();
 
       if (data.success) {
         setApplications(data.data || []);
+        setTotalCount(data.total ?? (data.data?.length || 0));
+        setTotalPages(data.totalPages || 1);
         if (data.stats) setStats(data.stats);
       }
     } catch (err) {
@@ -80,7 +92,7 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, searchQuery]);
+  }, [statusFilter, searchQuery, currentPage, pageSize]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -160,64 +172,77 @@ export default function AdminDashboardPage() {
     );
   };
 
-  // Export to CSV
-  const handleExportCSV = () => {
-    if (applications.length === 0) return;
+  // Export to CSV (fetches full matching set)
+  const handleExportCSV = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (statusFilter && statusFilter !== "all") params.append("status", statusFilter);
+      if (searchQuery.trim()) params.append("search", searchQuery.trim());
+      params.append("limit", "all");
 
-    const headers = [
-      "Application Number",
-      "Title",
-      "Surname",
-      "Last Name",
-      "Gender",
-      "ID Type",
-      "ID Number",
-      "Date of Birth",
-      "Place of Birth",
-      "Nationality",
-      "Phone Number",
-      "Email",
-      "Training Purpose",
-      "Takoradi Electoral Area",
-      "House No",
-      "House Address",
-      "Postal Address",
-      "Status",
-      "Admin Notes",
-      "Created At",
-    ];
+      const res = await fetch(`/api/admin?${params.toString()}`);
+      const data = await res.json();
+      const exportList: Application[] = data.success ? data.data : applications;
 
-    const rows = applications.map((app) => [
-      `"${app.application_number}"`,
-      `"${app.title}"`,
-      `"${app.surname.replace(/"/g, '""')}"`,
-      `"${app.last_name.replace(/"/g, '""')}"`,
-      `"${app.gender}"`,
-      `"${app.id_type}"`,
-      `"${app.id_number}"`,
-      `"${app.date_of_birth}"`,
-      `"${app.place_of_birth.replace(/"/g, '""')}"`,
-      `"${app.nationality}"`,
-      `"${app.phone_number}"`,
-      `"${app.email}"`,
-      `"${(app.training_purpose || "Personal").replace(/"/g, '""')}"`,
-      `"${(app.electoral_area || "Amanful West").replace(/"/g, '""')}"`,
-      `"${(app.house_number || "").replace(/"/g, '""')}"`,
-      `"${app.house_address.replace(/"/g, '""')}"`,
-      `"${(app.postal_address || "").replace(/"/g, '""')}"`,
-      `"${app.status}"`,
-      `"${(app.admin_notes || "").replace(/"/g, '""')}"`,
-      `"${app.created_at}"`,
-    ]);
+      if (!exportList || exportList.length === 0) return;
 
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `kobbydrive_applications_${new Date().toISOString().split("T")[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      const headers = [
+        "Application Number",
+        "Title",
+        "Surname",
+        "Last Name",
+        "Gender",
+        "ID Type",
+        "ID Number",
+        "Date of Birth",
+        "Place of Birth",
+        "Nationality",
+        "Phone Number",
+        "Email",
+        "Training Purpose",
+        "Takoradi Electoral Area",
+        "House No",
+        "House Address",
+        "Postal Address",
+        "Status",
+        "Admin Notes",
+        "Created At",
+      ];
+
+      const rows = exportList.map((app) => [
+        `"${app.application_number}"`,
+        `"${app.title}"`,
+        `"${app.surname.replace(/"/g, '""')}"`,
+        `"${app.last_name.replace(/"/g, '""')}"`,
+        `"${app.gender}"`,
+        `"${app.id_type}"`,
+        `"${app.id_number}"`,
+        `"${app.date_of_birth}"`,
+        `"${app.place_of_birth.replace(/"/g, '""')}"`,
+        `"${app.nationality}"`,
+        `"${app.phone_number}"`,
+        `"${app.email}"`,
+        `"${(app.training_purpose || "Personal").replace(/"/g, '""')}"`,
+        `"${(app.electoral_area || "Amanful West").replace(/"/g, '""')}"`,
+        `"${(app.house_number || "").replace(/"/g, '""')}"`,
+        `"${app.house_address.replace(/"/g, '""')}"`,
+        `"${(app.postal_address || "").replace(/"/g, '""')}"`,
+        `"${app.status}"`,
+        `"${(app.admin_notes || "").replace(/"/g, '""')}"`,
+        `"${app.created_at}"`,
+      ]);
+
+      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `kobbydrive_applications_${new Date().toISOString().split("T")[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("CSV export error:", err);
+    }
   };
 
   // Filter applications by client-side filters if needed
@@ -501,6 +526,89 @@ export default function AdminDashboardPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Controls Bar */}
+        <div className="p-4 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600">
+            <span>
+              Showing{" "}
+              <strong className="text-slate-900 font-bold">
+                {totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1}
+              </strong>{" "}
+              to{" "}
+              <strong className="text-slate-900 font-bold">
+                {Math.min(currentPage * pageSize, totalCount)}
+              </strong>{" "}
+              of <strong className="text-slate-900 font-bold">{totalCount}</strong> applications
+            </span>
+
+            <div className="flex items-center gap-1.5 pl-3 border-l border-slate-300">
+              <label htmlFor="pageSizeSelect" className="text-slate-500">Per page:</label>
+              <select
+                id="pageSizeSelect"
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-bold text-slate-800 focus:ring-1 focus:ring-brand-500 cursor-pointer"
+              >
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage <= 1 || loading}
+              className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold text-slate-700 flex items-center gap-1 transition-colors cursor-pointer shadow-xs"
+            >
+              <ChevronLeft className="w-4 h-4" /> Prev
+            </button>
+
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((p) => {
+                  return (
+                    p === 1 ||
+                    p === totalPages ||
+                    Math.abs(p - currentPage) <= 1
+                  );
+                })
+                .map((p, idx, arr) => {
+                  const prevP = arr[idx - 1];
+                  const showEllipsis = prevP && p - prevP > 1;
+                  return (
+                    <React.Fragment key={p}>
+                      {showEllipsis && <span className="px-1 text-slate-400 text-xs">...</span>}
+                      <button
+                        onClick={() => setCurrentPage(p)}
+                        disabled={loading}
+                        className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                          currentPage === p
+                            ? "bg-slate-900 text-white shadow-xs"
+                            : "bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 shadow-xs"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    </React.Fragment>
+                  );
+                })}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage >= totalPages || loading}
+              className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold text-slate-700 flex items-center gap-1 transition-colors cursor-pointer shadow-xs"
+            >
+              Next <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 

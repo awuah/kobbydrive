@@ -53,7 +53,16 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // 2. Applications Listing (optimized lightweight query excluding heavy signature base64)
+    // 2. Applications Listing (with server-side pagination & lightweight projection)
+    const pageParam = parseInt(searchParams.get("page") || "1", 10);
+    const page = isNaN(pageParam) || pageParam < 1 ? 1 : pageParam;
+    const limitParam = searchParams.get("limit");
+    const isAll = limitParam === "all";
+    const limit = isAll ? 5000 : parseInt(limitParam || "50", 10) || 50;
+
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
     const listFields = `
       id,
       application_number,
@@ -82,7 +91,7 @@ export async function GET(req: NextRequest) {
 
     let query = supabase
       .from("kbdr_applications")
-      .select(listFields)
+      .select(listFields, { count: "exact" })
       .order("created_at", { ascending: false });
 
     if (status && status !== "all") {
@@ -96,7 +105,11 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const { data: applications, error } = await query;
+    if (!isAll) {
+      query = query.range(from, to);
+    }
+
+    const { data: applications, count, error } = await query;
 
     if (error) {
       console.error("Fetch applications error:", error);
@@ -133,10 +146,16 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    const totalCount = count ?? applications?.length ?? 0;
+
     return NextResponse.json(
       {
         success: true,
         data: applications || [],
+        total: totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit) || 1,
         stats,
       },
       { status: 200 }
