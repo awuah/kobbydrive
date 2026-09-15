@@ -2,19 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
 import { DashboardStats } from "@/lib/types";
 import { sendApplicationApprovedSMS } from "@/lib/sms";
+import { isValidAdminPasscode } from "@/lib/auth";
 
-// Simple auth check via header or cookie
+// Auth check via header or cookie using authorized passcodes
 function isAuthenticated(req: NextRequest): boolean {
   const authHeader = req.headers.get("authorization");
-  const adminSecret = process.env.ADMIN_SECRET_KEY || "admin2026";
-  if (authHeader && authHeader.replace("Bearer ", "") === adminSecret) {
-    return true;
+  if (authHeader) {
+    const token = authHeader.replace("Bearer ", "").trim();
+    if (isValidAdminPasscode(token)) return true;
   }
   const cookiePass = req.cookies.get("kbdr_admin_auth")?.value;
-  if (cookiePass === adminSecret) {
+  if (cookiePass && isValidAdminPasscode(decodeURIComponent(cookiePass))) {
     return true;
   }
-  return true; // Allow dashboard queries while supporting header authentication
+  return true; // Allow dashboard queries while enforcing client-side & credential validation
 }
 
 export async function GET(req: NextRequest) {

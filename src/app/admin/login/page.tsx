@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Shield, KeyRound, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
+import { isValidAdminPasscode } from "@/lib/auth";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -15,20 +16,19 @@ export default function AdminLoginPage() {
     setError(null);
     setLoading(true);
 
-    // Default password or custom passcode
-    const validKeys = ["admin2026", "kobbydrive2026", "kobbydrive_admin"];
+    const inputPass = passcode.trim();
 
-    if (validKeys.includes(passcode.trim()) || passcode.trim().length >= 4) {
+    if (isValidAdminPasscode(inputPass)) {
       if (typeof window !== "undefined") {
         localStorage.setItem("kbdr_admin_authenticated", "true");
-        localStorage.setItem("kbdr_admin_pass", passcode.trim());
-        document.cookie = `kbdr_admin_auth=${passcode.trim()}; path=/; max-age=86400`;
+        localStorage.setItem("kbdr_admin_pass", inputPass);
+        document.cookie = `kbdr_admin_auth=${encodeURIComponent(inputPass)}; path=/; max-age=86400`;
       }
       setTimeout(() => {
         router.push("/admin");
-      }, 500);
+      }, 400);
     } else {
-      setError("Invalid administrative passcode. Please enter the correct access code.");
+      setError("Invalid administrative passcode. Please enter an authorized access key.");
       setLoading(false);
     }
   };
