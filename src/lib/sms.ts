@@ -81,3 +81,22 @@ export async function sendApplicationReceivedSMS(applicant: {
 
   return await sendArkeselSMS(applicant.phone_number, message);
 }
+
+/**
+ * Sends approval notification SMS to applicant when status is approved
+ */
+export async function sendApplicationApprovedSMS(applicant: {
+  title?: string;
+  surname: string;
+  last_name: string;
+  phone_number: string;
+  application_number: string;
+}) {
+  const name = applicant.title
+    ? `${applicant.title} ${applicant.surname}`
+    : `${applicant.surname} ${applicant.last_name}`;
+
+  const message = `Congratulations ${name}! Your application for the Kobby Free Driving School program (Ref: ${applicant.application_number}) has been APPROVED. You will be contacted with your training schedule and orientation details. Thank you!`;
+
+  return await sendArkeselSMS(applicant.phone_number, message);
+}

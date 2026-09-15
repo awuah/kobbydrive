@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
 import { DashboardStats } from "@/lib/types";
+import { sendApplicationApprovedSMS } from "@/lib/sms";
 
 // Simple auth check via header or cookie
 function isAuthenticated(req: NextRequest): boolean {
@@ -178,6 +179,16 @@ export async function PATCH(req: NextRequest) {
 
     // Handle batch status updates
     if (batchIds && Array.isArray(batchIds) && status) {
+      let candidatesToNotify: any[] = [];
+      if (status === "approved") {
+        const { data: batchApps } = await supabase
+          .from("kbdr_applications")
+          .select("id, title, surname, last_name, phone_number, application_number, status")
+          .in("id", batchIds);
+
+        candidatesToNotify = (batchApps || []).filter((app) => app.status !== "approved");
+      }
+
       const { error } = await supabase
         .from("kbdr_applications")
         .update({
@@ -190,6 +201,36 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
       }
 
+      // Dispatch approval SMS to all newly approved candidates
+      if (status === "approved" && candidatesToNotify.length > 0) {
+        for (const cand of candidatesToNotify) {
+          try {
+            if (cand.phone_number) {
+              const smsRes = await sendApplicationApprovedSMS({
+                title: cand.title,
+                surname: cand.surname,
+                last_name: cand.last_name,
+                phone_number: cand.phone_number,
+                application_number: cand.application_number,
+              });
+
+              await supabase.from("kbdr_application_logs").insert([
+                {
+                  application_id: cand.id,
+                  action: "sms_sent",
+                  notes: smsRes.success
+                    ? `Approval SMS sent to ${cand.phone_number} via KOBBYMP.`
+                    : `Approval SMS attempt: ${smsRes.error || "Failed"}`,
+                  performed_by: "system",
+                },
+              ]);
+            }
+          } catch (bErr) {
+            console.error(`Batch approval SMS error for ${cand.id}:`, bErr);
+          }
+        }
+      }
+
       return NextResponse.json({ success: true, message: `Updated ${batchIds.length} records.` });
     }
 
@@ -200,7 +241,7 @@ export async function PATCH(req: NextRequest) {
     // Fetch existing status for audit logging
     const { data: currentApp } = await supabase
       .from("kbdr_applications")
-      .select("status")
+      .select("status, title, surname, last_name, phone_number, application_number")
       .eq("id", id)
       .single();
 
@@ -233,6 +274,35 @@ export async function PATCH(req: NextRequest) {
         performed_by: "admin",
       },
     ]);
+
+    // Send approval SMS if status transitioned to approved
+    if (status === "approved" && currentApp?.status !== "approved") {
+      const recipientPhone = data?.phone_number || currentApp?.phone_number;
+      if (recipientPhone) {
+        try {
+          const smsRes = await sendApplicationApprovedSMS({
+            title: data?.title || currentApp?.title,
+            surname: data?.surname || currentApp?.surname,
+            last_name: data?.last_name || currentApp?.last_name,
+            phone_number: recipientPhone,
+            application_number: data?.application_number || currentApp?.application_number,
+          });
+
+          await supabase.from("kbdr_application_logs").insert([
+            {
+              application_id: id,
+              action: "sms_sent",
+              notes: smsRes.success
+                ? `Approval SMS sent to ${recipientPhone} via KOBBYMP.`
+                : `Approval SMS attempt: ${smsRes.error || "Failed"}`,
+              performed_by: "system",
+            },
+          ]);
+        } catch (smsErr) {
+          console.error("Approval SMS trigger error:", smsErr);
+        }
+      }
+    }
 
     return NextResponse.json({ success: true, data }, { status: 200 });
   } catch (err: any) {
