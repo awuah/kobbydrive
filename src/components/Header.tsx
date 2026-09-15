@@ -39,6 +39,17 @@ export default function Header() {
           </Link>
 
           <Link
+            href="/download-form"
+            className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors hidden md:flex items-center gap-1.5 ${
+              pathname === "/download-form"
+                ? "bg-brand-50 text-brand-700 font-semibold"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            Download PDF
+          </Link>
+
+          <Link
             href="/track"
             className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5 ${
               pathname === "/track"
