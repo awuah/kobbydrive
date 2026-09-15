@@ -19,7 +19,7 @@ export default function DownloadFormPage() {
     "7. Railway & Harbour",
     "8. New-Takoradi Lower",
     "9. Poasi - Upper New-Takoradi",
-    "10. Airforce",
+    "10. Airforce ( Airforce, adakope, kokompe & princess)",
     "11. Old Adra",
     "12. Cassava Farm",
     "13. Zenith",

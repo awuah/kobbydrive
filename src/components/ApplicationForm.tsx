@@ -656,7 +656,7 @@ export default function ApplicationForm() {
                 <option value="Railway & Harbour">7. Railway & Harbour</option>
                 <option value="New-Takoradi Lower">8. New-Takoradi Lower</option>
                 <option value="Poasi - Upper New-Takoradi">9. Poasi - Upper New-Takoradi</option>
-                <option value="Airforce">10. Airforce</option>
+                <option value="Airforce ( Airforce, adakope, kokompe & princess)">10. Airforce ( Airforce, adakope, kokompe & princess)</option>
                 <option value="Old Adra">11. Old Adra</option>
                 <option value="Cassava Farm">12. Cassava Farm</option>
                 <option value="Zenith">13. Zenith</option>

@@ -12,7 +12,7 @@ const ELECTORAL_AREAS_STANDARD = [
   "Railway & Harbour",
   "New-Takoradi Lower",
   "Poasi - Upper New-Takoradi",
-  "Airforce",
+  "Airforce ( Airforce, adakope, kokompe & princess)",
   "Old Adra",
   "Cassava Farm",
   "Zenith",
@@ -34,7 +34,9 @@ function normalizeArea(rawArea: string | null | undefined): string {
   if (clean.includes("railway") || clean.includes("harbour")) return "Railway & Harbour";
   if (clean.includes("newtakoradi") && clean.includes("lower")) return "New-Takoradi Lower";
   if (clean.includes("poasi") || (clean.includes("newtakoradi") && clean.includes("upper"))) return "Poasi - Upper New-Takoradi";
-  if (clean.includes("airforce")) return "Airforce";
+  if (clean.includes("airforce") || clean.includes("adakope") || clean.includes("kokompe") || clean.includes("princess")) {
+    return "Airforce ( Airforce, adakope, kokompe & princess)";
+  }
   if (clean.includes("oldadra") || clean.includes("adra")) return "Old Adra";
   if (clean.includes("cassava")) return "Cassava Farm";
   if (clean.includes("zenith")) return "Zenith";
