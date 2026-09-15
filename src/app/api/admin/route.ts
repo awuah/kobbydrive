@@ -199,12 +199,17 @@ export async function PATCH(req: NextRequest) {
         candidatesToNotify = (batchApps || []).filter((app) => app.status !== "approved");
       }
 
+      const batchPayload: Record<string, any> = {
+        status,
+        updated_at: new Date().toISOString(),
+      };
+      if (admin_notes !== undefined) {
+        batchPayload.admin_notes = admin_notes;
+      }
+
       const { error } = await supabase
         .from("kbdr_applications")
-        .update({
-          status,
-          updated_at: new Date().toISOString(),
-        })
+        .update(batchPayload)
         .in("id", batchIds);
 
       if (error) {
@@ -213,11 +218,16 @@ export async function PATCH(req: NextRequest) {
 
       // Record Activity Log for batch update
       const appNumbers = (batchApps || []).map((a) => a.application_number).slice(0, 5).join(", ");
+      const batchActionType = status === "approved" ? "BATCH_APPROVED" : status === "rejected" ? "BATCH_REJECTED" : "BATCH_STATUS_UPDATE";
+      const batchNote = status === "rejected"
+        ? `Rejection Reason: ${admin_notes || "Unspecified"} (Batch of ${batchIds.length} candidate(s): ${appNumbers}${batchIds.length > 5 ? "..." : ""})`
+        : `Batch updated ${batchIds.length} candidate(s) to "${status}". Refs: ${appNumbers}${batchIds.length > 5 ? "..." : ""}`;
+
       await recordAdminActivity({
         admin: auth.identity,
-        action: status === "approved" ? "BATCH_APPROVED" : "BATCH_STATUS_UPDATE",
+        action: batchActionType,
         newStatus: status,
-        notes: `Batch updated ${batchIds.length} candidate(s) to "${status}". Refs: ${appNumbers}${batchIds.length > 5 ? "..." : ""}`,
+        notes: batchNote,
       });
 
       // Dispatch approval SMS to all newly approved candidates
@@ -292,6 +302,10 @@ export async function PATCH(req: NextRequest) {
         ? "NOTES_UPDATED"
         : "STATUS_CHANGED";
 
+    const logNotes = status === "rejected"
+      ? `Rejection Reason: ${admin_notes || "No reason specified"}`
+      : admin_notes || `Status changed from ${currentApp?.status || "pending"} to ${status || currentApp?.status}`;
+
     // Record Activity Log
     await recordAdminActivity({
       admin: auth.identity,
@@ -301,7 +315,7 @@ export async function PATCH(req: NextRequest) {
       candidateName,
       previousStatus: currentApp?.status || null,
       newStatus: status || currentApp?.status,
-      notes: admin_notes || `Status changed from ${currentApp?.status || "pending"} to ${status || currentApp?.status}`,
+      notes: logNotes,
     });
 
     // Send approval SMS if status transitioned to approved

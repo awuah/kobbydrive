@@ -7,6 +7,7 @@ import { formatApplicationStatus, formatDate, formatDateTime } from "@/lib/utils
 import AdminStats from "@/components/AdminStats";
 import ApplicationDetailsModal from "@/components/ApplicationDetailsModal";
 import AdminActivityLogs from "@/components/AdminActivityLogs";
+import RejectionReasonModal from "@/components/RejectionReasonModal";
 import { isSuperAdminPasscode, isValidAdminPasscode, getAdminIdentity, AdminIdentity } from "@/lib/auth";
 import {
   Shield,
@@ -68,6 +69,7 @@ export default function AdminDashboardPage() {
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [batchLoading, setBatchLoading] = useState(false);
+  const [showBatchRejectModal, setShowBatchRejectModal] = useState(false);
 
   // Authentication check & session validation
   useEffect(() => {
@@ -189,8 +191,13 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const handleBatchStatus = async (status: ApplicationStatus) => {
+  const handleBatchStatus = async (status: ApplicationStatus, notes?: string) => {
     if (selectedIds.length === 0) return;
+    if (status === "rejected" && !notes) {
+      setShowBatchRejectModal(true);
+      return;
+    }
+
     setBatchLoading(true);
     try {
       const res = await fetch("/api/admin", {
@@ -199,7 +206,7 @@ export default function AdminDashboardPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${adminPasscode}`,
         },
-        body: JSON.stringify({ batchIds: selectedIds, status }),
+        body: JSON.stringify({ batchIds: selectedIds, status, admin_notes: notes }),
       });
 
       if (res.status === 401 || res.status === 403) {
@@ -210,6 +217,7 @@ export default function AdminDashboardPage() {
       const data = await res.json();
       if (data.success) {
         setSelectedIds([]);
+        setShowBatchRejectModal(false);
         loadData();
       }
     } catch (err) {
@@ -745,6 +753,15 @@ export default function AdminDashboardPage() {
           onUpdateStatus={handleUpdateStatus}
         />
       )}
+
+      {/* Batch Rejection Mandatory Reason Modal */}
+      <RejectionReasonModal
+        isOpen={showBatchRejectModal}
+        targetDescription={`${selectedIds.length} selected candidate(s)`}
+        onClose={() => setShowBatchRejectModal(false)}
+        onConfirm={(reason) => handleBatchStatus("rejected", reason)}
+        isLoading={batchLoading}
+      />
         </>
       )}
     </div>

@@ -22,6 +22,8 @@ import {
   Activity,
 } from "lucide-react";
 
+import RejectionReasonModal from "@/components/RejectionReasonModal";
+
 interface ApplicationDetailsModalProps {
   application: Application;
   onClose: () => void;
@@ -38,6 +40,7 @@ export default function ApplicationDetailsModal({
   const [adminNotes, setAdminNotes] = useState(initialApp.admin_notes || "");
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateSuccess, setUpdateSuccess] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -65,7 +68,36 @@ export default function ApplicationDetailsModal({
 
   const statusInfo = formatApplicationStatus(application.status);
 
+  const handleStatusChange = (newStatus: ApplicationStatus) => {
+    setSelectedStatus(newStatus);
+    if (newStatus === "rejected") {
+      setShowRejectModal(true);
+    }
+  };
+
+  const handleConfirmRejection = async (reason: string) => {
+    setIsUpdating(true);
+    try {
+      setAdminNotes(reason);
+      setSelectedStatus("rejected");
+      await onUpdateStatus(application.id, "rejected", reason);
+      setShowRejectModal(false);
+      setUpdateSuccess(true);
+      setTimeout(() => setUpdateSuccess(false), 3000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const handleStatusSave = async () => {
+    // If rejecting without notes, force prompt
+    if (selectedStatus === "rejected" && !adminNotes.trim()) {
+      setShowRejectModal(true);
+      return;
+    }
+
     setIsUpdating(true);
     setUpdateSuccess(false);
     try {
@@ -340,7 +372,7 @@ export default function ApplicationDetailsModal({
                 </label>
                 <select
                   value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value as ApplicationStatus)}
+                  onChange={(e) => handleStatusChange(e.target.value as ApplicationStatus)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm font-medium focus:ring-2 focus:ring-brand-500"
                 >
                   <option value="pending">⏳ Pending Review</option>
@@ -395,6 +427,20 @@ export default function ApplicationDetailsModal({
           </div>
         </div>
       </div>
+
+      {/* Mandatory Rejection Reason Popup Modal */}
+      <RejectionReasonModal
+        isOpen={showRejectModal}
+        targetDescription={`${application.title} ${application.surname} ${application.last_name} (${application.application_number})`}
+        onClose={() => {
+          setShowRejectModal(false);
+          if (selectedStatus === "rejected") {
+            setSelectedStatus(application.status);
+          }
+        }}
+        onConfirm={handleConfirmRejection}
+        isLoading={isUpdating}
+      />
     </div>
   );
 }

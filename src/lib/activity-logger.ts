@@ -113,7 +113,13 @@ export async function getAdminActivityLogs(options: {
     }
 
     if (options.action && options.action !== "all") {
-      query = query.eq("action", options.action);
+      if (options.action === "REJECTIONS") {
+        query = query.in("action", ["APPLICATION_REJECTED", "BATCH_REJECTED"]);
+      } else if (options.action === "APPROVALS") {
+        query = query.in("action", ["APPLICATION_APPROVED", "BATCH_APPROVED"]);
+      } else {
+        query = query.eq("action", options.action);
+      }
     }
 
     if (options.search && options.search.trim()) {

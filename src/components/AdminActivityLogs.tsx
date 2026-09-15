@@ -347,11 +347,9 @@ export default function AdminActivityLogs({ passcode }: AdminActivityLogsProps) 
             className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-brand-500"
           >
             <option value="all">All Action Types</option>
-            <option value="APPLICATION_APPROVED">Approvals</option>
-            <option value="APPLICATION_REJECTED">Rejections</option>
+            <option value="REJECTIONS">❌ Rejections (Single & Batch)</option>
+            <option value="APPROVALS">✅ Approvals (Single & Batch)</option>
             <option value="STATUS_CHANGED">Status Changes</option>
-            <option value="BATCH_APPROVED">Batch Approvals</option>
-            <option value="BATCH_STATUS_UPDATE">Batch Updates</option>
             <option value="NOTES_UPDATED">Notes Updates</option>
             <option value="EXPORT_CSV">CSV Exports</option>
             <option value="APPLICATION_DELETED">Deletions</option>
@@ -440,9 +438,20 @@ export default function AdminActivityLogs({ passcode }: AdminActivityLogsProps) 
                     </td>
 
                     <td className="p-4 max-w-md">
-                      <p className="text-slate-800 text-xs line-clamp-2">
-                        {log.notes || "No additional remarks"}
-                      </p>
+                      {log.action.includes("REJECT") || log.notes?.toLowerCase().includes("rejection reason") ? (
+                        <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200/80 text-rose-950 text-xs shadow-xs">
+                          <span className="font-extrabold text-rose-700 flex items-center gap-1 mb-0.5 text-[11px] uppercase tracking-wider">
+                            <XCircle className="w-3.5 h-3.5 text-rose-600 inline" /> Rejection Reason:
+                          </span>
+                          <span className="font-medium text-slate-900 block">
+                            {log.notes?.replace(/^Rejection Reason:\s*/i, "") || "No reason specified"}
+                          </span>
+                        </div>
+                      ) : (
+                        <p className="text-slate-800 text-xs line-clamp-2">
+                          {log.notes || "No additional remarks"}
+                        </p>
+                      )}
                     </td>
                   </tr>
                 ))
