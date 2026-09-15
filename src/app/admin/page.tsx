@@ -6,6 +6,8 @@ import { Application, ApplicationStatus, DashboardStats } from "@/lib/types";
 import { formatApplicationStatus, formatDate, formatDateTime } from "@/lib/utils";
 import AdminStats from "@/components/AdminStats";
 import ApplicationDetailsModal from "@/components/ApplicationDetailsModal";
+import AdminActivityLogs from "@/components/AdminActivityLogs";
+import { isSuperAdminPasscode, getAdminIdentity, AdminIdentity } from "@/lib/auth";
 import {
   Shield,
   Search,
@@ -24,11 +26,21 @@ import {
   AlertCircle,
   Loader2,
   FileSpreadsheet,
+  Crown,
+  User,
+  History,
+  LayoutDashboard,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [adminPasscode, setAdminPasscode] = useState<string>("");
+  const [adminIdentity, setAdminIdentity] = useState<AdminIdentity | null>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+  // Tabs for Superadmin ('applications' | 'activity_logs')
+  const [activeTab, setActiveTab] = useState<"applications" | "activity_logs">("applications");
 
   const [applications, setApplications] = useState<Application[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
@@ -61,9 +73,14 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const auth = localStorage.getItem("kbdr_admin_authenticated");
-      if (auth !== "true") {
+      const pass = localStorage.getItem("kbdr_admin_pass") || "";
+      if (auth !== "true" || !pass) {
         router.push("/admin/login");
       } else {
+        setAdminPasscode(pass);
+        const identity = getAdminIdentity(pass);
+        setAdminIdentity(identity);
+        setIsSuperAdmin(isSuperAdminPasscode(pass));
         setIsAuthenticated(true);
       }
     }
@@ -78,7 +95,11 @@ export default function AdminDashboardPage() {
       params.append("page", currentPage.toString());
       params.append("limit", pageSize.toString());
 
-      const res = await fetch(`/api/admin?${params.toString()}`);
+      const res = await fetch(`/api/admin?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${adminPasscode}`,
+        },
+      });
       const data = await res.json();
 
       if (data.success) {
@@ -92,7 +113,7 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, searchQuery, currentPage, pageSize]);
+  }, [statusFilter, searchQuery, currentPage, pageSize, adminPasscode]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -116,7 +137,10 @@ export default function AdminDashboardPage() {
   ) => {
     const res = await fetch("/api/admin", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${adminPasscode}`,
+      },
       body: JSON.stringify({ id, status: newStatus, admin_notes: notes }),
     });
 
@@ -143,7 +167,10 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch("/api/admin", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminPasscode}`,
+        },
         body: JSON.stringify({ batchIds: selectedIds, status }),
       });
       const data = await res.json();
@@ -180,11 +207,28 @@ export default function AdminDashboardPage() {
       if (searchQuery.trim()) params.append("search", searchQuery.trim());
       params.append("limit", "all");
 
-      const res = await fetch(`/api/admin?${params.toString()}`);
+      const res = await fetch(`/api/admin?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${adminPasscode}`,
+        },
+      });
       const data = await res.json();
       const exportList: Application[] = data.success ? data.data : applications;
 
       if (!exportList || exportList.length === 0) return;
+
+      // Log export action
+      fetch("/api/admin/logs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminPasscode}`,
+        },
+        body: JSON.stringify({
+          action: "EXPORT_CSV",
+          notes: `Exported ${exportList.length} applicant records to CSV.`,
+        }),
+      }).catch((e) => console.warn("Export log error:", e));
 
       const headers = [
         "Application Number",
@@ -262,33 +306,74 @@ export default function AdminDashboardPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 text-white p-6 rounded-2xl shadow-md">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 text-white p-6 rounded-2xl shadow-md border border-slate-800">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2.5">
             <Shield className="w-5 h-5 text-brand-400" />
             <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">
               Admin Monitoring Dashboard
             </h1>
+
+            {/* Admin identity badge */}
+            {adminIdentity && (
+              <span
+                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                  isSuperAdmin
+                    ? "bg-amber-400 text-slate-950"
+                    : "bg-brand-500/20 text-brand-300 border border-brand-400/30"
+                }`}
+              >
+                {isSuperAdmin ? <Crown className="w-3.5 h-3.5" /> : <User className="w-3.5 h-3.5" />}
+                {adminIdentity.name}
+              </span>
+            )}
           </div>
           <p className="text-xs text-slate-400">
             Free Driving School Program • Real-time Application Tracking
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Tab Switcher - Strictly visible only to Superadmin */}
+          {isSuperAdmin && (
+            <div className="p-1 bg-slate-800 rounded-xl border border-slate-700 flex items-center gap-1 mr-1">
+              <button
+                onClick={() => setActiveTab("applications")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  activeTab === "applications"
+                    ? "bg-brand-600 text-white shadow-sm"
+                    : "text-slate-300 hover:text-white"
+                }`}
+              >
+                <LayoutDashboard className="w-3.5 h-3.5" /> Applications
+              </button>
+
+              <button
+                onClick={() => setActiveTab("activity_logs")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  activeTab === "activity_logs"
+                    ? "bg-amber-500 text-slate-950 shadow-sm"
+                    : "text-slate-300 hover:text-white"
+                }`}
+              >
+                <History className="w-3.5 h-3.5" /> Superadmin Audit Logs
+              </button>
+            </div>
+          )}
+
           <button
             onClick={loadData}
             disabled={loading}
-            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh Data
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh
           </button>
 
           <button
             onClick={handleExportCSV}
             className="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
           >
-            <Download className="w-3.5 h-3.5" /> Export to CSV
+            <Download className="w-3.5 h-3.5" /> Export CSV
           </button>
 
           <button
@@ -299,6 +384,12 @@ export default function AdminDashboardPage() {
           </button>
         </div>
       </div>
+
+      {/* Superadmin Tab Content Switcher */}
+      {isSuperAdmin && activeTab === "activity_logs" ? (
+        <AdminActivityLogs passcode={adminPasscode} />
+      ) : (
+        <>
 
       {/* KPI Stats Cards */}
       <AdminStats
@@ -619,6 +710,8 @@ export default function AdminDashboardPage() {
           onClose={() => setSelectedApplication(null)}
           onUpdateStatus={handleUpdateStatus}
         />
+      )}
+        </>
       )}
     </div>
   );

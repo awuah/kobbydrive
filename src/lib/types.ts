@@ -63,6 +63,22 @@ export interface ApplicationLog {
   created_at: string;
 }
 
+export interface AdminActivityLog {
+  id: string;
+  admin_id: string;
+  admin_name: string;
+  admin_code?: string;
+  action: string;
+  application_id?: string | null;
+  application_number?: string | null;
+  candidate_name?: string | null;
+  previous_status?: string | null;
+  new_status?: string | null;
+  notes?: string | null;
+  ip_address?: string | null;
+  created_at: string;
+}
+
 export interface DashboardStats {
   total: number;
   pending: number;

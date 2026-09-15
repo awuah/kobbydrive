@@ -24,9 +24,23 @@ export default function AdminLoginPage() {
         localStorage.setItem("kbdr_admin_pass", inputPass);
         document.cookie = `kbdr_admin_auth=${encodeURIComponent(inputPass)}; path=/; max-age=86400`;
       }
+
+      // Record login activity in background
+      fetch("/api/admin/logs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${inputPass}`,
+        },
+        body: JSON.stringify({
+          action: "ADMIN_LOGIN",
+          notes: "Admin signed in to dashboard session.",
+        }),
+      }).catch((err) => console.warn("Login tracking note:", err));
+
       setTimeout(() => {
         router.push("/admin");
-      }, 400);
+      }, 350);
     } else {
       setError("Invalid administrative passcode. Please enter an authorized access key.");
       setLoading(false);

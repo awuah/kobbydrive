@@ -1,4 +1,4 @@
-﻿CREATE TABLE IF NOT EXISTS kbdr_applications (
+CREATE TABLE IF NOT EXISTS kbdr_applications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     application_number TEXT UNIQUE NOT NULL,
     surname TEXT NOT NULL,
@@ -32,6 +32,22 @@ CREATE TABLE IF NOT EXISTS kbdr_application_logs (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS kbdr_admin_activity_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    admin_id TEXT NOT NULL,
+    admin_name TEXT NOT NULL,
+    admin_code TEXT,
+    action TEXT NOT NULL,
+    application_id UUID,
+    application_number TEXT,
+    candidate_name TEXT,
+    previous_status TEXT,
+    new_status TEXT,
+    notes TEXT,
+    ip_address TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS kbdr_settings (
     key TEXT PRIMARY KEY,
     value JSONB NOT NULL,
@@ -42,9 +58,13 @@ CREATE INDEX IF NOT EXISTS idx_kbdr_applications_app_no ON kbdr_applications(app
 CREATE INDEX IF NOT EXISTS idx_kbdr_applications_phone ON kbdr_applications(phone_number);
 CREATE INDEX IF NOT EXISTS idx_kbdr_applications_status ON kbdr_applications(status);
 CREATE INDEX IF NOT EXISTS idx_kbdr_applications_created ON kbdr_applications(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_kbdr_admin_logs_created ON kbdr_admin_activity_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_kbdr_admin_logs_admin_id ON kbdr_admin_activity_logs(admin_id);
+CREATE INDEX IF NOT EXISTS idx_kbdr_admin_logs_action ON kbdr_admin_activity_logs(action);
 
 ALTER TABLE kbdr_applications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE kbdr_application_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE kbdr_admin_activity_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE kbdr_settings ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS kbdr_public_insert_policy ON kbdr_applications;
@@ -61,6 +81,9 @@ CREATE POLICY kbdr_public_delete_policy ON kbdr_applications FOR DELETE TO anon,
 
 DROP POLICY IF EXISTS kbdr_logs_all ON kbdr_application_logs;
 CREATE POLICY kbdr_logs_all ON kbdr_application_logs FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS kbdr_admin_logs_all ON kbdr_admin_activity_logs;
+CREATE POLICY kbdr_admin_logs_all ON kbdr_admin_activity_logs FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS kbdr_settings_all ON kbdr_settings;
 CREATE POLICY kbdr_settings_all ON kbdr_settings FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);

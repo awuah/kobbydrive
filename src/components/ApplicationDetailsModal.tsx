@@ -44,7 +44,10 @@ export default function ApplicationDetailsModal({
     const fetchFullDetails = async () => {
       if (!initialApp.id) return;
       try {
-        const res = await fetch(`/api/admin?id=${initialApp.id}`);
+        const pass = typeof window !== "undefined" ? localStorage.getItem("kbdr_admin_pass") || "" : "";
+        const res = await fetch(`/api/admin?id=${initialApp.id}`, {
+          headers: pass ? { Authorization: `Bearer ${pass}` } : {},
+        });
         const result = await res.json();
         if (isMounted && result.success && result.data) {
           setApplication(result.data);

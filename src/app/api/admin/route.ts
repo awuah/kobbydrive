@@ -2,20 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
 import { DashboardStats } from "@/lib/types";
 import { sendApplicationApprovedSMS } from "@/lib/sms";
-import { isValidAdminPasscode } from "@/lib/auth";
+import { isValidAdminPasscode, getAdminFromRequest } from "@/lib/auth";
+import { recordAdminActivity } from "@/lib/activity-logger";
 
 // Auth check via header or cookie using authorized passcodes
 function isAuthenticated(req: NextRequest): boolean {
-  const authHeader = req.headers.get("authorization");
-  if (authHeader) {
-    const token = authHeader.replace("Bearer ", "").trim();
-    if (isValidAdminPasscode(token)) return true;
-  }
-  const cookiePass = req.cookies.get("kbdr_admin_auth")?.value;
-  if (cookiePass && isValidAdminPasscode(decodeURIComponent(cookiePass))) {
-    return true;
-  }
-  return true; // Allow dashboard queries while enforcing client-side & credential validation
+  const auth = getAdminFromRequest(req);
+  return auth.isAuthenticated;
 }
 
 export async function GET(req: NextRequest) {
@@ -173,6 +166,7 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    const auth = getAdminFromRequest(req);
     const body = await req.json();
     const { id, status, admin_notes, action, batchIds } = body;
 
@@ -181,12 +175,12 @@ export async function PATCH(req: NextRequest) {
     // Handle batch status updates
     if (batchIds && Array.isArray(batchIds) && status) {
       let candidatesToNotify: any[] = [];
-      if (status === "approved") {
-        const { data: batchApps } = await supabase
-          .from("kbdr_applications")
-          .select("id, title, surname, last_name, phone_number, application_number, status")
-          .in("id", batchIds);
+      const { data: batchApps } = await supabase
+        .from("kbdr_applications")
+        .select("id, title, surname, last_name, phone_number, application_number, status")
+        .in("id", batchIds);
 
+      if (status === "approved") {
         candidatesToNotify = (batchApps || []).filter((app) => app.status !== "approved");
       }
 
@@ -201,6 +195,15 @@ export async function PATCH(req: NextRequest) {
       if (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
       }
+
+      // Record Activity Log for batch update
+      const appNumbers = (batchApps || []).map((a) => a.application_number).slice(0, 5).join(", ");
+      await recordAdminActivity({
+        admin: auth.identity,
+        action: status === "approved" ? "BATCH_APPROVED" : "BATCH_STATUS_UPDATE",
+        newStatus: status,
+        notes: `Batch updated ${batchIds.length} candidate(s) to "${status}". Refs: ${appNumbers}${batchIds.length > 5 ? "..." : ""}`,
+      });
 
       // Dispatch approval SMS to all newly approved candidates
       if (status === "approved" && candidatesToNotify.length > 0) {
@@ -264,17 +267,27 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    // Audit log
-    await supabase.from("kbdr_application_logs").insert([
-      {
-        application_id: id,
-        action: action || "status_updated",
-        previous_status: currentApp?.status || null,
-        new_status: status || currentApp?.status,
-        notes: admin_notes || `Status transitioned to ${status}`,
-        performed_by: "admin",
-      },
-    ]);
+    const candidateName = `${currentApp?.title || ""} ${currentApp?.surname || ""} ${currentApp?.last_name || ""}`.trim();
+    const actionType =
+      status === "approved"
+        ? "APPLICATION_APPROVED"
+        : status === "rejected"
+        ? "APPLICATION_REJECTED"
+        : admin_notes && !status
+        ? "NOTES_UPDATED"
+        : "STATUS_CHANGED";
+
+    // Record Activity Log
+    await recordAdminActivity({
+      admin: auth.identity,
+      action: actionType,
+      applicationId: id,
+      applicationNumber: currentApp?.application_number,
+      candidateName,
+      previousStatus: currentApp?.status || null,
+      newStatus: status || currentApp?.status,
+      notes: admin_notes || `Status changed from ${currentApp?.status || "pending"} to ${status || currentApp?.status}`,
+    });
 
     // Send approval SMS if status transitioned to approved
     if (status === "approved" && currentApp?.status !== "approved") {
@@ -316,6 +329,7 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const auth = getAdminFromRequest(req);
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 
@@ -324,10 +338,31 @@ export async function DELETE(req: NextRequest) {
     }
 
     const supabase = getServiceSupabase();
+
+    // Fetch before delete for log trail
+    const { data: targetApp } = await supabase
+      .from("kbdr_applications")
+      .select("application_number, title, surname, last_name")
+      .eq("id", id)
+      .single();
+
     const { error } = await supabase.from("kbdr_applications").delete().eq("id", id);
 
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+
+    // Record Activity Log
+    if (targetApp) {
+      const candidateName = `${targetApp.title || ""} ${targetApp.surname || ""} ${targetApp.last_name || ""}`.trim();
+      await recordAdminActivity({
+        admin: auth.identity,
+        action: "APPLICATION_DELETED",
+        applicationId: id,
+        applicationNumber: targetApp.application_number,
+        candidateName,
+        notes: `Application dossier ${targetApp.application_number} (${candidateName}) was permanently deleted.`,
+      });
     }
 
     return NextResponse.json({ success: true, message: "Application deleted successfully." });
