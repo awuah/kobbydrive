@@ -29,8 +29,8 @@ export const PRIMARY_SUPER_ADMIN_PASSCODE = "KOBBY9900SUPER";
 export const SUPER_ADMIN_PASSCODES = [
   "KOBBY9900SUPER",
   "KOBBY-9900-SUPER",
-  "SUPR8829KOBBY",
-  "SUPR-8829-KOBBY",
+  "KBD7741SUPER",
+  "KBD-7741-SUPER",
 ];
 
 export interface AdminIdentity {
@@ -59,7 +59,7 @@ export function getAdminIdentity(passcode: string): AdminIdentity {
   // 1. Superadmin check
   if (
     clean === "KOBBY9900SUPER" ||
-    clean === "SUPR8829KOBBY" ||
+    clean === "KBD7741SUPER" ||
     clean === (process.env.SUPER_ADMIN_PASSCODE || "").replace(/[\s-]/g, "").toUpperCase()
   ) {
     return {
