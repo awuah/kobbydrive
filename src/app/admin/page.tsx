@@ -8,6 +8,7 @@ import AdminStats from "@/components/AdminStats";
 import ApplicationDetailsModal from "@/components/ApplicationDetailsModal";
 import AdminActivityLogs from "@/components/AdminActivityLogs";
 import RejectionReasonModal from "@/components/RejectionReasonModal";
+import ElectoralAreaSummaryModal from "@/components/ElectoralAreaSummaryModal";
 import { isSuperAdminPasscode, isValidAdminPasscode, getAdminIdentity, AdminIdentity } from "@/lib/auth";
 import {
   Shield,
@@ -31,6 +32,7 @@ import {
   User,
   History,
   LayoutDashboard,
+  BarChart3,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
@@ -70,6 +72,7 @@ export default function AdminDashboardPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [batchLoading, setBatchLoading] = useState(false);
   const [showBatchRejectModal, setShowBatchRejectModal] = useState(false);
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
 
   // Authentication check & session validation
   useEffect(() => {
@@ -409,6 +412,13 @@ export default function AdminDashboardPage() {
             className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh
+          </button>
+
+          <button
+            onClick={() => setShowSummaryModal(true)}
+            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-brand-300 border border-brand-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+          >
+            <BarChart3 className="w-3.5 h-3.5 text-brand-400" /> Summary Report
           </button>
 
           <button
@@ -761,6 +771,13 @@ export default function AdminDashboardPage() {
         onClose={() => setShowBatchRejectModal(false)}
         onConfirm={(reason) => handleBatchStatus("rejected", reason)}
         isLoading={batchLoading}
+      />
+
+      {/* Electoral Area Summary Report Modal */}
+      <ElectoralAreaSummaryModal
+        isOpen={showSummaryModal}
+        onClose={() => setShowSummaryModal(false)}
+        passcode={adminPasscode}
       />
         </>
       )}
