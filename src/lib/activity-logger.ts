@@ -188,7 +188,7 @@ export async function getAdminActivityLogs(options: {
           id: l.id,
           admin_id: l.performed_by?.includes("Admin 1") ? "admin_1" :
                     l.performed_by?.includes("Admin 2") ? "admin_2" :
-                    l.performed_by?.includes("Admin 3") ? "admin_3" :
+                    (l.performed_by?.includes("Admin 3") || l.performed_by?.includes("Emma Avidor")) ? "admin_3" :
                     l.performed_by?.includes("Admin 4") ? "admin_4" :
                     l.performed_by?.includes("Super") ? "superadmin" : "admin",
           admin_name: l.performed_by || "Admin",

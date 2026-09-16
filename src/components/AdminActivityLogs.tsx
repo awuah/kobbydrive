@@ -172,10 +172,10 @@ export default function AdminActivityLogs({ passcode }: AdminActivityLogsProps) 
         </span>
       );
     }
-    if (adminId === "admin_3" || log.admin_name.includes("Admin 3")) {
+    if (adminId === "admin_3" || log.admin_name.includes("Admin 3") || log.admin_name.includes("Emma Avidor")) {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
-          <User className="w-3 h-3 text-amber-600" /> Admin 3 (FREE8394DRV)
+          <User className="w-3 h-3 text-amber-600" /> Emma Avidor (FREE8394DRV)
         </span>
       );
     }
@@ -261,7 +261,7 @@ export default function AdminActivityLogs({ passcode }: AdminActivityLogsProps) 
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider opacity-80">Admin 3</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider opacity-80">Emma Avidor</span>
             <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-black/10">FREE8394DRV</span>
           </div>
           <div className="text-2xl font-black mt-2">{adminStats.admin_3 || 0}</div>
@@ -333,7 +333,7 @@ export default function AdminActivityLogs({ passcode }: AdminActivityLogsProps) 
             <option value="all">All Admin Passcodes</option>
             <option value="admin_1">Admin 1 (KBD9482ADMN)</option>
             <option value="admin_2">Admin 2 (TAK7261DRVE)</option>
-            <option value="admin_3">Admin 3 (FREE8394DRV)</option>
+            <option value="admin_3">Emma Avidor (FREE8394DRV)</option>
             <option value="admin_4">Admin 4 (MP6153KOBBY)</option>
             <option value="superadmin">Super Admin</option>
           </select>

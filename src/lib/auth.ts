@@ -7,7 +7,7 @@
 export const PRIMARY_ADMIN_PASSCODES = [
   "KBD9482ADMN", // Admin 1
   "TAK7261DRVE", // Admin 2
-  "FREE8394DRV", // Admin 3
+  "FREE8394DRV", // Emma Avidor
   "MP6153KOBBY", // Admin 4
 ];
 
@@ -95,7 +95,7 @@ export function getAdminIdentity(passcode: string): AdminIdentity {
   if (clean === "FREE8394DRV") {
     return {
       id: "admin_3",
-      name: "Admin 3 (FREE8394DRV)",
+      name: "Emma Avidor (FREE8394DRV)",
       code: "FREE8394DRV",
       role: "admin",
       color: "amber",
