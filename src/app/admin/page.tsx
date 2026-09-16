@@ -10,6 +10,7 @@ import AdminActivityLogs from "@/components/AdminActivityLogs";
 import RejectionReasonModal from "@/components/RejectionReasonModal";
 import ElectoralAreaSummaryModal from "@/components/ElectoralAreaSummaryModal";
 import ScheduleManagementModal from "@/components/ScheduleManagementModal";
+import OperationsDashboardModal from "@/components/OperationsDashboardModal";
 import { isSuperAdminPasscode, isValidAdminPasscode, getAdminIdentity, AdminIdentity } from "@/lib/auth";
 import {
   Shield,
@@ -36,6 +37,7 @@ import {
   BarChart3,
   Clock,
   Calendar,
+  Car,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
@@ -78,6 +80,7 @@ export default function AdminDashboardPage() {
   const [showBatchRejectModal, setShowBatchRejectModal] = useState(false);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [showOperationsModal, setShowOperationsModal] = useState(false);
 
   // Authentication check & session validation
   useEffect(() => {
@@ -471,6 +474,13 @@ export default function AdminDashboardPage() {
             className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-brand-300 border border-brand-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
           >
             <BarChart3 className="w-3.5 h-3.5 text-brand-400" /> Summary Report
+          </button>
+
+          <button
+            onClick={() => setShowOperationsModal(true)}
+            className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-purple-600/20 cursor-pointer active:scale-95"
+          >
+            <Car className="w-3.5 h-3.5 text-purple-200" /> Operations & Testing
           </button>
 
           {isSuperAdmin && (
@@ -885,6 +895,17 @@ export default function AdminDashboardPage() {
         <ScheduleManagementModal
           onClose={() => {
             setShowScheduleModal(false);
+            loadData();
+          }}
+          adminPasscode={adminPasscode}
+        />
+      )}
+
+      {/* Field Operations, Testing, Fuel & Provisional Certification Modal */}
+      {showOperationsModal && (
+        <OperationsDashboardModal
+          onClose={() => {
+            setShowOperationsModal(false);
             loadData();
           }}
           adminPasscode={adminPasscode}
