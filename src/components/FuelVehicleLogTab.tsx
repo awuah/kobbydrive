@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FuelVehicleLog } from "@/lib/operations-types";
 
 interface FuelVehicleLogTabProps {
@@ -16,6 +16,13 @@ export default function FuelVehicleLogTab({ adminPasscode }: FuelVehicleLogTabPr
   const [fuelStation, setFuelStation] = useState("GOIL Takoradi Roundabout");
   const [receiptNumber, setReceiptNumber] = useState("RCP-98214");
   const [notes, setNotes] = useState("Daily morning and afternoon training practicals");
+
+  const [instructorList, setInstructorList] = useState<string[]>([
+    "Instructor Mensah",
+    "Instructor Emmanuel",
+    "Instructor Francis",
+    "Instructor Kofi",
+  ]);
 
   const [fuelLogs, setFuelLogs] = useState<FuelVehicleLog[]>([
     {
@@ -49,6 +56,22 @@ export default function FuelVehicleLogTab({ adminPasscode }: FuelVehicleLogTabPr
   ]);
 
   const [isLogging, setIsLogging] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("kbdr_instructors_roster");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          const names = parsed.map((i: any) => i.name).filter(Boolean);
+          if (names.length > 0) {
+            setInstructorList(names);
+            setDriverInstructorName(names[0]);
+          }
+        } catch {}
+      }
+    }
+  }, []);
 
   const totalSpentGHS = fuelLogs.reduce((sum, log) => sum + log.amountGHS, 0);
   const totalLitres = fuelLogs.reduce((sum, log) => sum + log.litresPurchased, 0);
@@ -124,12 +147,17 @@ export default function FuelVehicleLogTab({ adminPasscode }: FuelVehicleLogTabPr
                 <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
                   Driver / Instructor
                 </label>
-                <input
-                  type="text"
+                <select
                   value={driverInstructorName}
                   onChange={(e) => setDriverInstructorName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 font-medium focus:ring-2 focus:ring-amber-500"
-                />
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-semibold text-slate-800 focus:ring-2 focus:ring-amber-500"
+                >
+                  {instructorList.map((name, i) => (
+                    <option key={i} value={name}>
+                      👤 {name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

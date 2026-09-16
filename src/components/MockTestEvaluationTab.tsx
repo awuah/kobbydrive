@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Application } from "@/lib/types";
 import { MockTestAssessment } from "@/lib/operations-types";
 
@@ -22,9 +22,32 @@ export default function MockTestEvaluationTab({
   const [examinerName, setExaminerName] = useState<string>("Lead Instructor");
   const [remarks, setRemarks] = useState<string>("Demonstrated great road awareness and smooth parallel parking.");
 
+  const [instructorList, setInstructorList] = useState<string[]>([
+    "Lead Instructor",
+    "Emmanuel Mensah",
+    "Francis Cudjoe",
+    "Kofi Owusu",
+  ]);
+
   const [testRecords, setTestRecords] = useState<MockTestAssessment[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("kbdr_instructors_roster");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          const names = parsed.map((i: any) => i.name).filter(Boolean);
+          if (names.length > 0) {
+            setInstructorList(names);
+            setExaminerName(names[0]);
+          }
+        } catch {}
+      }
+    }
+  }, []);
 
   const selectedCand = candidates.find((c) => c.id === selectedCandidateId) || candidates[0];
 
@@ -171,17 +194,22 @@ export default function MockTestEvaluationTab({
               </div>
             </div>
 
-            {/* Examiner & Remarks */}
+            {/* Examiner Selector */}
             <div>
               <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
-                Examiner / Instructor Name
+                Examiner / Driving Instructor
               </label>
-              <input
-                type="text"
+              <select
                 value={examinerName}
                 onChange={(e) => setExaminerName(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-purple-500"
-              />
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-semibold text-slate-800 focus:ring-2 focus:ring-purple-500"
+              >
+                {instructorList.map((name, i) => (
+                  <option key={i} value={name}>
+                    👤 {name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -253,9 +281,11 @@ export default function MockTestEvaluationTab({
                     <span className="text-[10px] font-mono text-slate-400">{t.applicationNumber}</span>
                   </div>
                   <div className="text-[11px] text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
+                    <span>Examiner: <strong>{t.examinerName}</strong></span>
+                    <span>•</span>
                     <span>Theory: <strong>{t.theoryScore}/50</strong></span>
                     <span>•</span>
-                    <span>Road Test: <strong>{t.roadDrivingScore}/50</strong></span>
+                    <span>Road: <strong>{t.roadDrivingScore}/50</strong></span>
                     <span>•</span>
                     <span>Parking: <strong>{t.parkingManeuvers}</strong></span>
                   </div>
