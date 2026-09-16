@@ -31,6 +31,34 @@ export type TrainingScheduleType =
   | "Late afternoon 2pm to 6pm"
   | "unscheduled";
 
+export interface CohortSlot {
+  id: string; // e.g. "early", "mid", "late"
+  label: TrainingScheduleType;
+  timeRange: string;
+  maxCapacity: number; // 30
+  enrolledCount: number;
+  applicantIds: string[];
+}
+
+export interface TrainingCohort {
+  id: string;
+  code: string; // e.g. "COHORT-2026-01"
+  name: string; // e.g. "Cohort 1 (Sep 21 – Oct 10, 2026)"
+  startDate: string; // YYYY-MM-DD (Monday)
+  endDate: string; // YYYY-MM-DD (Saturday, 3 weeks later)
+  maxCapacity: number; // 90
+  status: "upcoming" | "active" | "completed";
+  notes?: string;
+  slots: {
+    early: CohortSlot;
+    mid: CohortSlot;
+    late: CohortSlot;
+  };
+  totalEnrolled: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Application {
   id: string;
   application_number: string;
@@ -50,6 +78,10 @@ export interface Application {
   phone_number: string;
   training_purpose?: TrainingPurposeType | string;
   training_schedule?: TrainingScheduleType | string;
+  cohort_id?: string | null;
+  cohort_name?: string | null;
+  cohort_start_date?: string | null;
+  cohort_end_date?: string | null;
   electoral_area?: string;
   passport_photo?: string;
   signature_data: string;
@@ -96,3 +128,5 @@ export interface DashboardStats {
   rejected: number;
   todayCount: number;
 }
+
+
