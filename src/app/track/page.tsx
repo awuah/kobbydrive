@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Application } from "@/lib/types";
-import { formatApplicationStatus, formatDate, formatDateTime } from "@/lib/utils";
+import { formatApplicationStatus, formatDate, formatDateTime, formatTrainingScheduleBadge, parseTrainingDetails } from "@/lib/utils";
 import {
   Search,
   CheckCircle2,
@@ -258,6 +258,17 @@ function TrackContent() {
                     <span className="text-slate-400 block">Training Purpose</span>
                     <span className="font-semibold text-brand-700">
                       {app.training_purpose || "Personal"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block">Preferred Schedule</span>
+                    <span className="font-semibold text-slate-800">
+                      {(() => {
+                        const details = parseTrainingDetails(app.training_purpose);
+                        const schedule = app.training_schedule || details.schedule;
+                        const schedBadge = formatTrainingScheduleBadge(schedule);
+                        return schedBadge.label;
+                      })()}
                     </span>
                   </div>
                   <div>

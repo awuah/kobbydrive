@@ -25,6 +25,12 @@ export type TrainingPurposeType =
   | "Private"
   | "Equipment Handling";
 
+export type TrainingScheduleType =
+  | "Early morning 6am to 10am"
+  | "Mid morning 10am to 2pm"
+  | "Late afternoon 2pm to 6pm"
+  | "unscheduled";
+
 export interface Application {
   id: string;
   application_number: string;
@@ -43,6 +49,7 @@ export interface Application {
   email: string;
   phone_number: string;
   training_purpose?: TrainingPurposeType | string;
+  training_schedule?: TrainingScheduleType | string;
   electoral_area?: string;
   passport_photo?: string;
   signature_data: string;

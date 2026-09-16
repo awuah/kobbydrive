@@ -20,6 +20,10 @@ import {
   Copy,
   ArrowRight,
   Camera,
+  Clock,
+  Sunrise,
+  Sun,
+  Sunset,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import Link from "next/link";
@@ -41,6 +45,7 @@ interface FormState {
   phone_number: string;
   electoral_area: string;
   training_purpose: string;
+  training_schedule: string;
   passport_photo: string;
   signature_data: string;
   agreed_terms: boolean;
@@ -63,6 +68,7 @@ const initialFormState: FormState = {
   phone_number: "",
   electoral_area: "",
   training_purpose: "Personal",
+  training_schedule: "Early morning 6am to 10am",
   passport_photo: "",
   signature_data: "",
   agreed_terms: false,
@@ -110,6 +116,8 @@ export default function ApplicationForm() {
       return "Please select where you live or vote in Takoradi constituency.";
     if (!form.training_purpose)
       return "Please select what you will use the driver training for.";
+    if (!form.training_schedule)
+      return "Please select your preferred training schedule.";
     if (!form.passport_photo)
       return "Passport photograph is required. Please upload your passport picture.";
     if (!form.signature_data) return "Digital signature is required. Please sign in the box below.";
@@ -270,6 +278,10 @@ export default function ApplicationForm() {
                 <div>
                   <span className="text-slate-500 text-xs block">Training Purpose</span>
                   <span className="font-semibold text-brand-700">{submittedData.form.training_purpose}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 text-xs block">Preferred Schedule</span>
+                  <span className="font-semibold text-sky-700">{submittedData.form.training_schedule}</span>
                 </div>
                 <div>
                   <span className="text-slate-500 text-xs block">Takoradi Electoral Area</span>
@@ -730,6 +742,89 @@ export default function ApplicationForm() {
                   <div>
                     <h4 className="font-bold text-sm text-slate-900">{opt.label}</h4>
                     <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">{opt.desc}</p>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Preferred Training Schedule */}
+        <div className="pt-6 border-t border-slate-100">
+          <div className="flex items-center gap-2 mb-1">
+            <Clock className="w-4 h-4 text-brand-600" />
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+              Preferred Training Schedule <span className="text-rose-500">*</span>
+            </label>
+          </div>
+          <p className="text-xs text-slate-500 mb-3.5">
+            Select your convenient daily training time slot in Takoradi
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              {
+                id: "Early morning 6am to 10am",
+                num: "1",
+                label: "Early Morning",
+                time: "6:00 AM – 10:00 AM",
+                icon: <Sunrise className="w-5 h-5 text-amber-500" />,
+                desc: "Early session before standard work or daytime commitments",
+              },
+              {
+                id: "Mid morning 10am to 2pm",
+                num: "2",
+                label: "Mid Morning",
+                time: "10:00 AM – 2:00 PM",
+                icon: <Sun className="w-5 h-5 text-sky-500" />,
+                desc: "Bright daylight practice session with active road navigation",
+              },
+              {
+                id: "Late afternoon 2pm to 6pm",
+                num: "3",
+                label: "Late Afternoon",
+                time: "2:00 PM – 6:00 PM",
+                icon: <Sunset className="w-5 h-5 text-indigo-500" />,
+                desc: "Afternoon to evening session for after-work and late schedules",
+              },
+            ].map((sched) => {
+              const isSelected = form.training_schedule === sched.id;
+              return (
+                <label
+                  key={sched.id}
+                  className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between select-none ${
+                    isSelected
+                      ? "border-brand-600 bg-brand-50/60 ring-2 ring-brand-500/20 shadow-sm"
+                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2.5">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`w-6 h-6 rounded-lg text-xs font-extrabold flex items-center justify-center ${
+                          isSelected
+                            ? "bg-brand-600 text-white"
+                            : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {sched.num}
+                      </span>
+                      {sched.icon}
+                    </div>
+                    <input
+                      type="radio"
+                      name="training_schedule"
+                      value={sched.id}
+                      checked={isSelected}
+                      onChange={handleChange}
+                      className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-slate-900">{sched.label}</h4>
+                    <div className="text-xs font-extrabold text-brand-700 mt-0.5">{sched.time}</div>
+                    <p className="text-[11px] text-slate-500 mt-1 leading-snug">{sched.desc}</p>
                   </div>
                 </label>
               );

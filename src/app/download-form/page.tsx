@@ -36,6 +36,12 @@ export default function DownloadFormPage() {
     { letter: "E", title: "Equipment Handling", desc: "Forklifts, earthmovers, construction, and heavy machinery" },
   ];
 
+  const trainingSchedules = [
+    { num: "1", title: "Early morning (6am to 10am)", time: "6:00 AM – 10:00 AM", desc: "Early session before daytime commitments" },
+    { num: "2", title: "Mid morning (10am to 2pm)", time: "10:00 AM – 2:00 PM", desc: "Optimal daylight practical driving session" },
+    { num: "3", title: "Late afternoon (2pm to 6pm)", time: "2:00 PM – 6:00 PM", desc: "Afternoon to evening session for late schedules" },
+  ];
+
   return (
     <div className="min-h-screen bg-slate-100 py-6 sm:py-10 text-slate-900 print:bg-white print:p-0 print:m-0">
       {/* Action Toolbar (Hidden during print) */}
@@ -237,10 +243,31 @@ export default function DownloadFormPage() {
           </div>
         </div>
 
-        {/* Section 5: Declaration & Signature */}
+        {/* Section 5: Preferred Training Schedule */}
+        <div className="mb-6 space-y-3">
+          <div className="bg-slate-900 text-white font-bold px-3 py-1.5 rounded text-xs uppercase tracking-wider">
+            5. Preferred Training Schedule in Takoradi (Tick One)
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+            {trainingSchedules.map((opt) => (
+              <div key={opt.num} className="flex items-start gap-2.5 p-2 border border-slate-200 rounded">
+                <div className="w-4 h-4 border border-slate-400 rounded-sm shrink-0 mt-0.5"></div>
+                <div>
+                  <div className="font-bold text-[11px] text-slate-900">
+                    {opt.num}. {opt.title}
+                  </div>
+                  <div className="text-[10px] text-slate-500 leading-tight">{opt.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Section 6: Declaration & Signature */}
         <div className="mb-6 space-y-3 border-t-2 border-slate-900 pt-4">
           <div className="bg-slate-900 text-white font-bold px-3 py-1.5 rounded text-xs uppercase tracking-wider">
-            5. Candidate Declaration & Signature
+            6. Candidate Declaration & Signature
           </div>
 
           <p className="text-[10px] text-slate-600 leading-relaxed pt-1">

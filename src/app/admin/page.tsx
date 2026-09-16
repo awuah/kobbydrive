@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Application, ApplicationStatus, DashboardStats } from "@/lib/types";
-import { formatApplicationStatus, formatDate, formatDateTime } from "@/lib/utils";
+import { formatApplicationStatus, formatDate, formatDateTime, formatTrainingScheduleBadge, parseTrainingDetails } from "@/lib/utils";
 import AdminStats from "@/components/AdminStats";
 import ApplicationDetailsModal from "@/components/ApplicationDetailsModal";
 import AdminActivityLogs from "@/components/AdminActivityLogs";
@@ -33,6 +33,7 @@ import {
   History,
   LayoutDashboard,
   BarChart3,
+  Clock,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
@@ -61,6 +62,7 @@ export default function AdminDashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [genderFilter, setGenderFilter] = useState("all");
+  const [scheduleFilter, setScheduleFilter] = useState("all");
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
 
   // Pagination state (default: 50 records per page)
@@ -289,6 +291,7 @@ export default function AdminDashboardPage() {
         "Phone Number",
         "Email",
         "Training Purpose",
+        "Preferred Training Schedule",
         "Takoradi Electoral Area",
         "House No",
         "House Address",
@@ -298,28 +301,35 @@ export default function AdminDashboardPage() {
         "Created At",
       ];
 
-      const rows = exportList.map((app) => [
-        `"${app.application_number}"`,
-        `"${app.title}"`,
-        `"${app.surname.replace(/"/g, '""')}"`,
-        `"${app.last_name.replace(/"/g, '""')}"`,
-        `"${app.gender}"`,
-        `"${app.id_type}"`,
-        `"${app.id_number}"`,
-        `"${app.date_of_birth}"`,
-        `"${app.place_of_birth.replace(/"/g, '""')}"`,
-        `"${app.nationality}"`,
-        `"${app.phone_number}"`,
-        `"${app.email}"`,
-        `"${(app.training_purpose || "Personal").replace(/"/g, '""')}"`,
-        `"${(app.electoral_area || "Amanful West").replace(/"/g, '""')}"`,
-        `"${(app.house_number || "").replace(/"/g, '""')}"`,
-        `"${app.house_address.replace(/"/g, '""')}"`,
-        `"${(app.postal_address || "").replace(/"/g, '""')}"`,
-        `"${app.status}"`,
-        `"${(app.admin_notes || "").replace(/"/g, '""')}"`,
-        `"${app.created_at}"`,
-      ]);
+      const rows = exportList.map((app) => {
+        const details = parseTrainingDetails(app.training_purpose);
+        const purpose = app.training_schedule ? app.training_purpose : details.purpose;
+        const schedule = app.training_schedule || details.schedule || "unscheduled";
+
+        return [
+          `"${app.application_number}"`,
+          `"${app.title}"`,
+          `"${app.surname.replace(/"/g, '""')}"`,
+          `"${app.last_name.replace(/"/g, '""')}"`,
+          `"${app.gender}"`,
+          `"${app.id_type}"`,
+          `"${app.id_number}"`,
+          `"${app.date_of_birth}"`,
+          `"${app.place_of_birth.replace(/"/g, '""')}"`,
+          `"${app.nationality}"`,
+          `"${app.phone_number}"`,
+          `"${app.email}"`,
+          `"${(purpose || "Personal").replace(/"/g, '""')}"`,
+          `"${schedule.replace(/"/g, '""')}"`,
+          `"${(app.electoral_area || "Amanful West").replace(/"/g, '""')}"`,
+          `"${(app.house_number || "").replace(/"/g, '""')}"`,
+          `"${app.house_address.replace(/"/g, '""')}"`,
+          `"${(app.postal_address || "").replace(/"/g, '""')}"`,
+          `"${app.status}"`,
+          `"${(app.admin_notes || "").replace(/"/g, '""')}"`,
+          `"${app.created_at}"`,
+        ];
+      });
 
       const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
       const encodedUri = encodeURI(csvContent);
@@ -337,6 +347,15 @@ export default function AdminDashboardPage() {
   // Filter applications by client-side filters if needed
   const filteredApplications = applications.filter((app) => {
     if (genderFilter !== "all" && app.gender !== genderFilter) return false;
+    if (scheduleFilter !== "all") {
+      const details = parseTrainingDetails(app.training_purpose);
+      const appSched = (app.training_schedule || details.schedule || "unscheduled").toLowerCase();
+      if (scheduleFilter === "unscheduled") {
+        if (appSched !== "unscheduled") return false;
+      } else {
+        if (!appSched.includes(scheduleFilter.toLowerCase())) return false;
+      }
+    }
     return true;
   });
 
@@ -494,6 +513,18 @@ export default function AdminDashboardPage() {
               <option value="Male">Male</option>
               <option value="Female">Female</option>
             </select>
+
+            <select
+              value={scheduleFilter}
+              onChange={(e) => setScheduleFilter(e.target.value)}
+              className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-medium text-slate-700 focus:ring-2 focus:ring-brand-500"
+            >
+              <option value="all">All Schedules</option>
+              <option value="Early morning">🌅 Early morning (6am - 10am)</option>
+              <option value="Mid morning">☀️ Mid morning (10am - 2pm)</option>
+              <option value="Late afternoon">🌇 Late afternoon (2pm - 6pm)</option>
+              <option value="unscheduled">⏳ Unscheduled</option>
+            </select>
           </div>
         </div>
 
@@ -611,6 +642,16 @@ export default function AdminDashboardPage() {
                               <span className="text-[10px] font-semibold bg-brand-50 text-brand-700 px-1.5 py-0.5 rounded border border-brand-200">
                                 {app.training_purpose || "Personal"}
                               </span>
+                              {(() => {
+                                const details = parseTrainingDetails(app.training_purpose);
+                                const schedule = app.training_schedule || details.schedule;
+                                const schedBadge = formatTrainingScheduleBadge(schedule);
+                                return (
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded border ${schedBadge.badgeClass}`}>
+                                    {schedBadge.label}
+                                  </span>
+                                );
+                              })()}
                               <span className="text-[10px] font-semibold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded">
                                 📍 {app.electoral_area || "Amanful West"}
                               </span>

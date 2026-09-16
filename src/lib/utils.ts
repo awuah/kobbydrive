@@ -1,4 +1,4 @@
-﻿import { clsx, type ClassValue } from "clsx";
+import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { ApplicationStatus } from "./types";
 
@@ -108,4 +108,99 @@ export function formatDateTime(dateString: string): string {
   } catch {
     return dateString;
   }
+}
+
+export const TRAINING_SCHEDULES = [
+  {
+    id: "Early morning 6am to 10am",
+    label: "Early morning",
+    time: "6:00 AM – 10:00 AM",
+    icon: "sunrise",
+    desc: "Early session before daytime commitments",
+  },
+  {
+    id: "Mid morning 10am to 2pm",
+    label: "Mid morning",
+    time: "10:00 AM – 2:00 PM",
+    icon: "sun",
+    desc: "Optimal daylight practical driving session",
+  },
+  {
+    id: "Late afternoon 2pm to 6pm",
+    label: "Late afternoon",
+    time: "2:00 PM – 6:00 PM",
+    icon: "sunset",
+    desc: "Afternoon to early evening practical driving slot",
+  },
+] as const;
+
+export function parseTrainingDetails(trainingPurposeRaw?: string | null): {
+  purpose: string;
+  schedule: string;
+} {
+  if (!trainingPurposeRaw || !trainingPurposeRaw.trim()) {
+    return { purpose: "Personal", schedule: "unscheduled" };
+  }
+
+  const raw = trainingPurposeRaw.trim();
+  if (raw.includes("|| Schedule: ")) {
+    const parts = raw.split("|| Schedule: ");
+    return {
+      purpose: parts[0].trim() || "Personal",
+      schedule: parts[1].trim() || "unscheduled",
+    };
+  }
+
+  if (raw.includes("[Schedule: ") && raw.endsWith("]")) {
+    const parts = raw.slice(0, -1).split("[Schedule: ");
+    return {
+      purpose: parts[0].trim() || "Personal",
+      schedule: parts[1].trim() || "unscheduled",
+    };
+  }
+
+  return { purpose: raw, schedule: "unscheduled" };
+}
+
+export function formatTrainingScheduleBadge(schedule?: string | null): {
+  label: string;
+  badgeClass: string;
+  isUnscheduled: boolean;
+} {
+  if (!schedule || schedule.toLowerCase() === "unscheduled") {
+    return {
+      label: "Unscheduled",
+      badgeClass: "bg-slate-100 text-slate-600 border-slate-200",
+      isUnscheduled: true,
+    };
+  }
+
+  const s = schedule.toLowerCase();
+  if (s.includes("early") || s.includes("6am")) {
+    return {
+      label: "🌅 Early morning (6am - 10am)",
+      badgeClass: "bg-amber-50 text-amber-900 border-amber-300 font-semibold",
+      isUnscheduled: false,
+    };
+  }
+  if (s.includes("mid") || s.includes("10am")) {
+    return {
+      label: "☀️ Mid morning (10am - 2pm)",
+      badgeClass: "bg-sky-50 text-sky-900 border-sky-300 font-semibold",
+      isUnscheduled: false,
+    };
+  }
+  if (s.includes("late") || s.includes("afternoon") || s.includes("2pm")) {
+    return {
+      label: "🌇 Late afternoon (2pm - 6pm)",
+      badgeClass: "bg-indigo-50 text-indigo-900 border-indigo-300 font-semibold",
+      isUnscheduled: false,
+    };
+  }
+
+  return {
+    label: schedule,
+    badgeClass: "bg-brand-50 text-brand-900 border-brand-300 font-semibold",
+    isUnscheduled: false,
+  };
 }

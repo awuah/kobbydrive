@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
-import { generateApplicationNumber } from "@/lib/utils";
+import { generateApplicationNumber, parseTrainingDetails } from "@/lib/utils";
 import { sendApplicationReceivedSMS } from "@/lib/sms";
 import { sendApplicationEmailNotification } from "@/lib/email";
 
@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
       phone_number,
       electoral_area,
       training_purpose,
+      training_schedule,
       passport_photo,
       signature_data,
     } = body;
@@ -56,6 +57,13 @@ export async function POST(req: NextRequest) {
     const supabase = getServiceSupabase();
     const applicationNumber = generateApplicationNumber();
 
+    const rawPurpose = training_purpose?.trim() || "Personal";
+    const rawSchedule = training_schedule?.trim() || "unscheduled";
+    const finalPurpose =
+      rawSchedule && rawSchedule !== "unscheduled"
+        ? `${rawPurpose} || Schedule: ${rawSchedule}`
+        : rawPurpose;
+
     const { data, error } = await supabase
       .from("kbdr_applications")
       .insert([
@@ -76,7 +84,7 @@ export async function POST(req: NextRequest) {
           email: email.trim().toLowerCase(),
           phone_number: phone_number.trim(),
           electoral_area: electoral_area?.trim() || "Amanful West",
-          training_purpose: training_purpose?.trim() || "Personal",
+          training_purpose: finalPurpose,
           passport_photo,
           signature_data,
           status: "pending",
@@ -100,7 +108,7 @@ export async function POST(req: NextRequest) {
         application_id: data.id,
         action: "application_submitted",
         new_status: "pending",
-        notes: "Candidate submitted public driving school application.",
+        notes: `Candidate submitted public driving school application. Schedule: ${rawSchedule}.`,
         performed_by: "applicant",
       },
     ]);
@@ -149,7 +157,8 @@ export async function POST(req: NextRequest) {
         house_address: house_address.trim(),
         postal_address: postal_address?.trim() || null,
         electoral_area: electoral_area?.trim() || "Amanful West",
-        training_purpose: training_purpose?.trim() || "Personal",
+        training_purpose: rawPurpose,
+        training_schedule: rawSchedule,
         passport_photo,
         signature_data,
         created_at: data.created_at,
@@ -240,7 +249,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, data: data || [] }, { status: 200 });
+    const mappedData = (data || []).map((app) => {
+      const { purpose, schedule } = parseTrainingDetails(app.training_purpose);
+      return {
+        ...app,
+        training_purpose: purpose,
+        training_schedule: schedule,
+      };
+    });
+
+    return NextResponse.json({ success: true, data: mappedData }, { status: 200 });
   } catch (err: any) {
     return NextResponse.json(
       { success: false, error: err.message || "Internal server error" },

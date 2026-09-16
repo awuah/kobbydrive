@@ -2,7 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { Application, ApplicationStatus } from "@/lib/types";
-import { formatApplicationStatus, formatDate, formatDateTime } from "@/lib/utils";
+import {
+  formatApplicationStatus,
+  formatDate,
+  formatDateTime,
+  formatTrainingScheduleBadge,
+  parseTrainingDetails,
+} from "@/lib/utils";
 import {
   X,
   User,
@@ -307,12 +313,31 @@ export default function ApplicationDetailsModal({
                     </a>
                   </div>
 
-                  <div className="flex justify-between py-1 border-b border-slate-50">
-                    <span className="text-slate-500 font-medium">Training Purpose</span>
-                    <span className="font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
-                      {application.training_purpose || "Personal"}
-                    </span>
-                  </div>
+                  {(() => {
+                    const details = parseTrainingDetails(application.training_purpose);
+                    const purpose = application.training_schedule ? application.training_purpose : details.purpose;
+                    const schedule = application.training_schedule || details.schedule;
+                    const schedBadge = formatTrainingScheduleBadge(schedule);
+                    return (
+                      <>
+                        <div className="flex justify-between py-1 border-b border-slate-50">
+                          <span className="text-slate-500 font-medium">Training Purpose</span>
+                          <span className="font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
+                            {purpose || "Personal"}
+                          </span>
+                        </div>
+
+                        <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                          <span className="text-slate-500 font-medium flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5 text-slate-400" /> Preferred Schedule
+                          </span>
+                          <span className={`px-2 py-0.5 rounded text-[11px] border ${schedBadge.badgeClass}`}>
+                            {schedBadge.label}
+                          </span>
+                        </div>
+                      </>
+                    );
+                  })()}
 
                   <div className="flex justify-between py-1 border-b border-slate-50">
                     <span className="text-slate-500 font-medium">Takoradi Electoral Area</span>

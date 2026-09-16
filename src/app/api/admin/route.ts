@@ -4,6 +4,7 @@ import { DashboardStats } from "@/lib/types";
 import { sendApplicationApprovedSMS } from "@/lib/sms";
 import { isValidAdminPasscode, getAdminFromRequest } from "@/lib/auth";
 import { recordAdminActivity } from "@/lib/activity-logger";
+import { parseTrainingDetails } from "@/lib/utils";
 
 // Auth check via header or cookie using authorized passcodes
 function isAuthenticated(req: NextRequest): boolean {
@@ -151,10 +152,19 @@ export async function GET(req: NextRequest) {
 
     const totalCount = count ?? applications?.length ?? 0;
 
+    const mappedApplications = (applications || []).map((app) => {
+      const { purpose, schedule } = parseTrainingDetails(app.training_purpose);
+      return {
+        ...app,
+        training_purpose: purpose,
+        training_schedule: schedule,
+      };
+    });
+
     return NextResponse.json(
       {
         success: true,
-        data: applications || [],
+        data: mappedApplications,
         total: totalCount,
         page,
         limit,
