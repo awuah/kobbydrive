@@ -21,10 +21,10 @@ import {
 export async function GET(req: NextRequest) {
   try {
     const auth = getAdminFromRequest(req);
-    if (!auth.isAuthenticated) {
+    if (!auth.isAuthenticated || !auth.isSuperAdmin) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized access" },
-        { status: 401 }
+        { success: false, error: "Unauthorized access: Schedule Management is restricted to Super Admins." },
+        { status: 403 }
       );
     }
 
@@ -54,10 +54,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const auth = getAdminFromRequest(req);
-    if (!auth.isAuthenticated) {
+    if (!auth.isAuthenticated || !auth.isSuperAdmin) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized access" },
-        { status: 401 }
+        { success: false, error: "Unauthorized access: Schedule Management is restricted to Super Admins." },
+        { status: 403 }
       );
     }
 

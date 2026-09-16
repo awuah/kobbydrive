@@ -202,6 +202,13 @@ export function getAdminFromRequest(req: {
   }
 
   if (!token) {
+    const customHeader = req.headers.get("x-admin-passcode");
+    if (customHeader) {
+      token = customHeader.trim();
+    }
+  }
+
+  if (!token) {
     const cookiePass = req.cookies.get("kbdr_admin_auth")?.value;
     if (cookiePass) {
       token = decodeURIComponent(cookiePass).trim();

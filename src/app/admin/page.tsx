@@ -443,12 +443,14 @@ export default function AdminDashboardPage() {
             <BarChart3 className="w-3.5 h-3.5 text-brand-400" /> Summary Report
           </button>
 
-          <button
-            onClick={() => setShowScheduleModal(true)}
-            className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/20 cursor-pointer active:scale-95"
-          >
-            <Calendar className="w-3.5 h-3.5 text-slate-950" /> Schedule Management
-          </button>
+          {isSuperAdmin && (
+            <button
+              onClick={() => setShowScheduleModal(true)}
+              className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/20 cursor-pointer active:scale-95"
+            >
+              <Calendar className="w-3.5 h-3.5 text-slate-950" /> Schedule Management
+            </button>
+          )}
 
           <button
             onClick={handleExportCSV}
@@ -831,8 +833,8 @@ export default function AdminDashboardPage() {
         passcode={adminPasscode}
       />
 
-      {/* Schedule & Cohort Management Modal */}
-      {showScheduleModal && (
+      {/* Schedule & Cohort Management Modal (Super Admin Exclusive) */}
+      {isSuperAdmin && showScheduleModal && (
         <ScheduleManagementModal
           onClose={() => {
             setShowScheduleModal(false);
