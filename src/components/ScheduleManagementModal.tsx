@@ -1,297 +1,292 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { TrainingCohort, Application } from "@/lib/types";
-import { createDefaultCohort, calculate3WeekCohortDates } from "@/lib/schedule-manager";
-import VisualScheduleCalendar from "./VisualScheduleCalendar";
-import ApplicantAssignmentPool from "./ApplicantAssignmentPool";
-import CohortDetailModal from "./CohortDetailModal";
+import { Application } from "@/lib/types";
+import ScheduleApplicantListModal from "./ScheduleApplicantListModal";
 
 interface ScheduleManagementModalProps {
   onClose: () => void;
   adminPasscode: string;
 }
 
+interface ScheduleCardData {
+  id: string;
+  title: string;
+  timeRange: string;
+  icon: string;
+  startDate: string;
+  status: "active" | "upcoming" | "inactive";
+  colorClass: string;
+  bgLight: string;
+  borderClass: string;
+  filterKey: string;
+}
+
 export default function ScheduleManagementModal({
   onClose,
   adminPasscode,
 }: ScheduleManagementModalProps) {
-  const [cohorts, setCohorts] = useState<TrainingCohort[]>([]);
-  const [approvedApplications, setApprovedApplications] = useState<Application[]>([]);
-  const [selectedCohort, setSelectedCohort] = useState<TrainingCohort | null>(null);
+  const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAssigning, setIsAssigning] = useState(false);
-  const [activeView, setActiveView] = useState<"calendar" | "pool">("calendar");
+  const [selectedCard, setSelectedCard] = useState<ScheduleCardData | null>(null);
 
-  // Fetch data
-  const fetchData = async () => {
+  const scheduleCards: ScheduleCardData[] = [
+    {
+      id: "early",
+      title: "Early Morning Schedule",
+      timeRange: "6:00 AM – 10:00 AM",
+      icon: "🌅",
+      startDate: "Oct 2026",
+      status: "active",
+      colorClass: "text-amber-900",
+      bgLight: "bg-gradient-to-br from-amber-50 to-orange-50/40",
+      borderClass: "border-amber-200 hover:border-amber-400 hover:shadow-amber-100",
+      filterKey: "early",
+    },
+    {
+      id: "mid",
+      title: "Mid Morning Schedule",
+      timeRange: "10:00 AM – 2:00 PM",
+      icon: "☀️",
+      startDate: "Oct 2026",
+      status: "active",
+      colorClass: "text-sky-900",
+      bgLight: "bg-gradient-to-br from-sky-50 to-blue-50/40",
+      borderClass: "border-sky-200 hover:border-sky-400 hover:shadow-sky-100",
+      filterKey: "mid",
+    },
+    {
+      id: "late",
+      title: "Late Afternoon Schedule",
+      timeRange: "2:00 PM – 6:00 PM",
+      icon: "🌇",
+      startDate: "Oct 2026",
+      status: "active",
+      colorClass: "text-purple-900",
+      bgLight: "bg-gradient-to-br from-purple-50 to-indigo-50/40",
+      borderClass: "border-purple-200 hover:border-purple-400 hover:shadow-purple-100",
+      filterKey: "late",
+    },
+    {
+      id: "unscheduled",
+      title: "Unscheduled Approved Pool",
+      timeRange: "Pending Time Slot Assignment",
+      icon: "⏳",
+      startDate: "Awaiting Allocation",
+      status: "upcoming",
+      colorClass: "text-slate-800",
+      bgLight: "bg-gradient-to-br from-slate-50 to-slate-100/50",
+      borderClass: "border-slate-300 hover:border-slate-400 hover:shadow-slate-100",
+      filterKey: "unscheduled",
+    },
+  ];
+
+  // Load all approved & in-training applications
+  const loadData = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/admin/schedules", {
-        headers: { "x-admin-passcode": adminPasscode },
+      const res = await fetch("/api/admin?status=all&limit=all", {
+        headers: { Authorization: "Bearer " + adminPasscode },
       });
       const data = await res.json();
-      if (data.success) {
-        const apps: Application[] = data.applications || [];
-        setApprovedApplications(apps);
-
-        // Build initial cohorts starting next Monday
-        setCohorts((prev) => {
-          if (prev.length > 0) return prev;
-          const c1 = createDefaultCohort(1, "2026-09-21");
-          const c2 = createDefaultCohort(2, "2026-10-12");
-          const c3 = createDefaultCohort(3, "2026-11-02");
-          return [c1, c2, c3];
-        });
+      if (data.success && Array.isArray(data.data)) {
+        const approvedAndTraining = data.data.filter(
+          (a: Application) => a.status === "approved" || a.status === "in_training"
+        );
+        setApplications(approvedAndTraining);
       }
     } catch (err) {
-      console.error("Failed to load schedules:", err);
+      console.error("Failed to fetch schedule data:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    loadData();
   }, []);
 
-  // Update cohort counts based on application assignments
-  const syncCohortsWithApplications = (currentCohorts: TrainingCohort[], apps: Application[]): TrainingCohort[] => {
-    return currentCohorts.map((cohort) => {
-      const cohortApps = apps.filter((a) => {
-        const purpose = a.training_purpose || "";
-        return purpose.includes(cohort.name) || purpose.includes(cohort.code);
-      });
-
-      const early = cohortApps.filter((a) => {
-        const s = (a.training_schedule || a.training_purpose || "").toLowerCase();
+  // Filter applicants for a given card
+  const getApplicantsForCard = (card: ScheduleCardData): Application[] => {
+    return applications.filter((app) => {
+      const s = (app.training_schedule || "unscheduled").toLowerCase();
+      if (card.filterKey === "unscheduled") {
+        return !s || s === "unscheduled";
+      }
+      if (card.filterKey === "early") {
         return s.includes("early") || s.includes("6am");
-      });
-      const mid = cohortApps.filter((a) => {
-        const s = (a.training_schedule || a.training_purpose || "").toLowerCase();
+      }
+      if (card.filterKey === "mid") {
         return s.includes("mid") || s.includes("10am");
-      });
-      const late = cohortApps.filter((a) => {
-        const s = (a.training_schedule || a.training_purpose || "").toLowerCase();
-        return s.includes("late") || s.includes("2pm") || s.includes("afternoon");
-      });
-
-      return {
-        ...cohort,
-        totalEnrolled: cohortApps.length,
-        slots: {
-          early: { ...cohort.slots.early, enrolledCount: early.length, applicantIds: early.map((a) => a.id) },
-          mid: { ...cohort.slots.mid, enrolledCount: mid.length, applicantIds: mid.map((a) => a.id) },
-          late: { ...cohort.slots.late, enrolledCount: late.length, applicantIds: late.map((a) => a.id) },
-        },
-      };
+      }
+      if (card.filterKey === "late") {
+        return s.includes("late") || s.includes("afternoon") || s.includes("2pm");
+      }
+      return false;
     });
   };
 
-  const activeCohorts = syncCohortsWithApplications(cohorts, approvedApplications);
-
-  // Unscheduled applications
-  const unscheduledApps = approvedApplications.filter((a) => {
-    const purpose = a.training_purpose || "";
-    const isAssigned = activeCohorts.some((c) => purpose.includes(c.name) || purpose.includes(c.code));
-    return !isAssigned;
-  });
-
-  // Actions
-  const handleAssignApplicants = async (
-    applicantIds: string[],
-    cohortId: string,
-    slotLabel: string,
-    cohortName: string
-  ) => {
-    setIsAssigning(true);
+  const handleUpdateApplicantSchedule = async (applicantId: string, newSchedule: string) => {
     try {
-      const res = await fetch("/api/admin/schedules", {
-        method: "POST",
+      await fetch("/api/admin", {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          "x-admin-passcode": adminPasscode,
+          Authorization: "Bearer " + adminPasscode,
         },
         body: JSON.stringify({
-          action: "ASSIGN_TO_COHORT",
-          applicantIds,
-          cohortId,
-          cohortName,
-          slotLabel,
+          batchIds: [applicantId],
+          training_schedule: newSchedule,
         }),
       });
-      const resData = await res.json();
-      if (resData.success) {
-        await fetchData();
-      }
+      await loadData();
     } catch (err) {
-      console.error("Assign error:", err);
-    } finally {
-      setIsAssigning(false);
+      console.error("Error updating schedule:", err);
     }
   };
 
-  const handleUnassignApplicant = async (applicantId: string) => {
+  const handleUpdateApplicantStatus = async (applicantId: string, newStatus: string) => {
     try {
-      const res = await fetch("/api/admin/schedules", {
-        method: "POST",
+      await fetch("/api/admin", {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          "x-admin-passcode": adminPasscode,
+          Authorization: "Bearer " + adminPasscode,
         },
         body: JSON.stringify({
-          action: "UNASSIGN_FROM_COHORT",
-          applicantIds: [applicantId],
+          id: applicantId,
+          status: newStatus,
         }),
       });
-      const resData = await res.json();
-      if (resData.success) {
-        await fetchData();
-      }
+      await loadData();
     } catch (err) {
-      console.error("Unassign error:", err);
+      console.error("Error updating status:", err);
     }
-  };
-
-  const handleRescheduleCohort = (cohortId: string, newStartDate: string) => {
-    const { startDate, endDate, formattedRange } = calculate3WeekCohortDates(newStartDate);
-    setCohorts((prev) =>
-      prev.map((c) => {
-        if (c.id === cohortId) {
-          const cohortNumMatch = c.name.match(/Cohort\s+(\d+)/);
-          const num = cohortNumMatch ? cohortNumMatch[1] : "1";
-          return {
-            ...c,
-            startDate,
-            endDate,
-            name: "Cohort " + num + " (" + formattedRange + ")",
-          };
-        }
-        return c;
-      })
-    );
-  };
-
-  const handleCreateCohort = () => {
-    const nextNum = cohorts.length + 1;
-    const lastCohort = cohorts[cohorts.length - 1];
-    let startStr = "2026-11-23";
-    if (lastCohort) {
-      const d = new Date(lastCohort.endDate);
-      d.setDate(d.getDate() + 2); // Monday after Saturday
-      startStr = d.toISOString().split("T")[0];
-    }
-    const newC = createDefaultCohort(nextNum, startStr);
-    setCohorts((prev) => [...prev, newC]);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-slate-100 rounded-3xl shadow-2xl border border-slate-300 w-full max-w-[1400px] h-[92vh] flex flex-col overflow-hidden">
-        {/* Top Navigation Bar */}
-        <div className="p-4 sm:p-5 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-xs animate-fadeIn">
+      <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
+        {/* Header - Simple & Clean */}
+        <div className="p-5 sm:p-6 bg-slate-900 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500 flex items-center justify-center text-slate-950 text-xl font-black shadow-lg shadow-amber-500/20">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center text-slate-950 text-2xl font-black shadow-lg shadow-amber-500/20">
               📅
             </div>
             <div>
-              <h1 className="text-lg font-black tracking-tight flex items-center gap-2">
-                <span>Schedule & Cohort Management</span>
+              <h1 className="text-xl font-black tracking-tight text-white flex items-center gap-2">
+                <span>Training Schedule Manager</span>
                 <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
-                  90 Per Cohort • 3 Weeks (Mon–Sat)
+                  Tablet & Field View
                 </span>
               </h1>
-              <p className="text-xs text-slate-400">
-                Visual cohort planning, drag-and-drop scheduling & applicant class rosters
+              <p className="text-xs text-slate-400 mt-0.5">
+                Tap any schedule card to inspect student names, contact info, and take attendance.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* View Switcher */}
-            <div className="flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700">
-              <button
-                onClick={() => setActiveView("calendar")}
-                className={"px-3 py-1.5 rounded-lg text-xs font-bold transition-all " +
-                  (activeView === "calendar"
-                    ? "bg-amber-500 text-slate-950 shadow-sm"
-                    : "text-slate-300 hover:text-white")
-                }
-              >
-                📅 Visual Calendar
-              </button>
-              <button
-                onClick={() => setActiveView("pool")}
-                className={"px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 " +
-                  (activeView === "pool"
-                    ? "bg-amber-500 text-slate-950 shadow-sm"
-                    : "text-slate-300 hover:text-white")
-                }
-              >
-                <span>👥 Unassigned Pool</span>
-                <span className="px-1.5 py-0.2 rounded-full bg-sky-500 text-white text-[10px] font-black">
-                  {unscheduledApps.length}
-                </span>
-              </button>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Main Body - Simple Cards Grid */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-50/50">
+          {isLoading ? (
+            <div className="py-20 text-center text-slate-400 text-sm">
+              <div className="inline-block w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+              <p>Loading schedule counts...</p>
             </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              {scheduleCards.map((card) => {
+                const cardApps = getApplicantsForCard(card);
+                const count = cardApps.length;
+                const inTrainingCount = cardApps.filter((a) => a.status === "in_training").length;
 
-            <button
-              onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-            >
-              ✕
-            </button>
-          </div>
+                return (
+                  <div
+                    key={card.id}
+                    onClick={() => setSelectedCard(card)}
+                    className={"p-5 sm:p-6 rounded-2xl border-2 shadow-xs hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-col justify-between group active:scale-[0.99] " +
+                      card.bgLight + " " + card.borderClass
+                    }
+                  >
+                    <div>
+                      {/* Card Header & Status Badge */}
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-3xl">{card.icon}</span>
+                          <div>
+                            <h3 className={"font-black text-base sm:text-lg " + card.colorClass}>
+                              {card.title}
+                            </h3>
+                            <p className="text-xs font-semibold text-slate-500">
+                              🕒 {card.timeRange}
+                            </p>
+                          </div>
+                        </div>
+
+                        <span className={"px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide border " +
+                          (card.status === "active"
+                            ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                            : "bg-amber-100 text-amber-800 border-amber-300")
+                        }>
+                          {card.status === "active" ? "🟢 Active" : "🟡 Pending"}
+                        </span>
+                      </div>
+
+                      {/* Start Date & In Training Stats */}
+                      <div className="flex items-center justify-between text-xs text-slate-600 my-4 bg-white/70 p-3 rounded-xl border border-slate-200/60">
+                        <div>
+                          <span className="text-slate-400 block text-[10px] uppercase font-bold">Start Date</span>
+                          <span className="font-bold text-slate-800">📅 {card.startDate}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-slate-400 block text-[10px] uppercase font-bold">In Training</span>
+                          <span className="font-bold text-purple-700">🚘 {inTrainingCount} Active</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom Count & Action Button */}
+                    <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between">
+                      <div>
+                        <span className="text-2xl sm:text-3xl font-black text-slate-900">
+                          {count}
+                        </span>
+                        <span className="text-xs text-slate-500 font-semibold ml-1.5">
+                          Applicants Enrolled
+                        </span>
+                      </div>
+
+                      <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 group-hover:text-amber-700 group-hover:translate-x-0.5 transition-all">
+                        <span>Open Roster</span>
+                        <span>→</span>
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        {/* Content Body */}
-        <div className="flex-1 p-3 sm:p-4 overflow-hidden grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Main Visual Calendar (8 Cols) */}
-          <div className={(activeView === "calendar" ? "block lg:col-span-8" : "hidden lg:block lg:col-span-7") + " h-full flex flex-col"}>
-            <VisualScheduleCalendar
-              cohorts={activeCohorts}
-              applications={approvedApplications}
-              onSelectCohort={(c) => setSelectedCohort(c)}
-              onRescheduleCohort={handleRescheduleCohort}
-              onCreateCohort={handleCreateCohort}
-              onDropApplicantToCohort={(appId, cId, sKey) => {
-                const targetC = activeCohorts.find((c) => c.id === cId);
-                const slotLabel = sKey === "early"
-                  ? "Early morning 6am to 10am"
-                  : sKey === "mid"
-                  ? "Mid morning 10am to 2pm"
-                  : "Late afternoon 2pm to 6pm";
-                if (targetC) {
-                  handleAssignApplicants([appId], targetC.id, slotLabel, targetC.name);
-                }
-              }}
-            />
-          </div>
-
-          {/* Right Panel: Applicant Pool (4 Cols) */}
-          <div className={(activeView === "pool" ? "block lg:col-span-12" : "hidden lg:block lg:col-span-5") + " h-full flex flex-col"}>
-            <ApplicantAssignmentPool
-              applicants={unscheduledApps}
-              cohorts={activeCohorts}
-              onAssignApplicants={handleAssignApplicants}
-              isAssigning={isAssigning}
-            />
-          </div>
-        </div>
-
-        {/* Cohort Detail & Class Roster Modal */}
-        {selectedCohort && (
-          <CohortDetailModal
-            cohort={selectedCohort}
-            enrolledApplicants={approvedApplications.filter((a) => {
-              const p = a.training_purpose || "";
-              return p.includes(selectedCohort.name) || p.includes(selectedCohort.code);
-            })}
-            onClose={() => setSelectedCohort(null)}
-            onUnassignApplicant={handleUnassignApplicant}
-            onMoveShift={async (appId, targetSlot) => {
-              await handleAssignApplicants([appId], selectedCohort.id, targetSlot, selectedCohort.name);
-            }}
+        {/* Selected Card Applicant List Modal */}
+        {selectedCard && (
+          <ScheduleApplicantListModal
+            scheduleTitle={selectedCard.title}
+            scheduleTime={selectedCard.timeRange}
+            startDate={selectedCard.startDate}
+            isActive={selectedCard.status === "active"}
+            applicants={getApplicantsForCard(selectedCard)}
+            onClose={() => setSelectedCard(null)}
+            onUpdateApplicantSchedule={handleUpdateApplicantSchedule}
+            onUpdateApplicantStatus={handleUpdateApplicantStatus}
           />
         )}
       </div>

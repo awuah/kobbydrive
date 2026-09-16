@@ -235,6 +235,36 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleBatchAssignSchedule = async (schedule: string) => {
+    if (selectedIds.length === 0) return;
+    setBatchLoading(true);
+    try {
+      const res = await fetch("/api/admin", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminPasscode}`,
+        },
+        body: JSON.stringify({ batchIds: selectedIds, training_schedule: schedule }),
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        handleLogout();
+        return;
+      }
+
+      const data = await res.json();
+      if (data.success) {
+        setSelectedIds([]);
+        loadData();
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setBatchLoading(false);
+    }
+  };
+
   const toggleSelectAll = () => {
     if (selectedIds.length === filteredApplications.length) {
       setSelectedIds([]);
@@ -542,30 +572,47 @@ export default function AdminDashboardPage() {
 
         {/* Batch Actions Toolbar (if any selected) */}
         {selectedIds.length > 0 && (
-          <div className="p-3 bg-brand-50 border border-brand-200 rounded-xl flex items-center justify-between gap-3 text-xs">
+          <div className="p-3 bg-brand-50 border border-brand-200 rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs">
             <span className="font-semibold text-brand-900">
-              {selectedIds.length} candidate(s) selected
+              ⚡ {selectedIds.length} candidate(s) selected
             </span>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleBatchStatus("approved")}
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                onChange={(e) => {
+                  if (e.target.value) {
+                    handleBatchAssignSchedule(e.target.value);
+                    e.target.value = "";
+                  }
+                }}
                 disabled={batchLoading}
-                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-white border border-brand-300 text-slate-800 font-semibold shadow-xs focus:ring-2 focus:ring-brand-500 text-xs cursor-pointer"
               >
-                Approve Selected
-              </button>
+                <option value="">📅 Assign Schedule ▾</option>
+                <option value="Early morning 6am to 10am">🌅 Early morning (6am - 10am)</option>
+                <option value="Mid morning 10am to 2pm">☀️ Mid morning (10am - 2pm)</option>
+                <option value="Late afternoon 2pm to 6pm">🌇 Late afternoon (2pm - 6pm)</option>
+                <option value="unscheduled">⏳ Mark Unscheduled</option>
+              </select>
+
               <button
                 onClick={() => handleBatchStatus("in_training")}
                 disabled={batchLoading}
-                className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold transition-colors cursor-pointer"
               >
                 Set In Training
               </button>
               <button
+                onClick={() => handleBatchStatus("approved")}
+                disabled={batchLoading}
+                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-colors cursor-pointer"
+              >
+                Approve Selected
+              </button>
+              <button
                 onClick={() => handleBatchStatus("rejected")}
                 disabled={batchLoading}
-                className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold transition-colors cursor-pointer"
               >
                 Reject Selected
               </button>

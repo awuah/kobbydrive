@@ -193,9 +193,41 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { id, status, admin_notes, action, batchIds } = body;
+    const { id, status, admin_notes, action, batchIds, training_schedule } = body;
 
     const supabase = getServiceSupabase();
+
+    // Handle batch schedule updates
+    if (batchIds && Array.isArray(batchIds) && training_schedule !== undefined) {
+      const { data: batchApps } = await supabase
+        .from("kbdr_applications")
+        .select("id, training_purpose, application_number")
+        .in("id", batchIds);
+
+      for (const app of (batchApps || [])) {
+        let basePurpose = "Personal";
+        if (app.training_purpose) {
+          const parts = app.training_purpose.split("|| Schedule: ");
+          basePurpose = parts[0].trim() || "Personal";
+        }
+        const updatedPurpose = `${basePurpose} || Schedule: ${training_schedule}`;
+        await supabase
+          .from("kbdr_applications")
+          .update({
+            training_purpose: updatedPurpose,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", app.id);
+      }
+
+      await recordAdminActivity({
+        admin: auth.identity,
+        action: "BATCH_SCHEDULE_ASSIGNMENT",
+        notes: `Assigned schedule "${training_schedule}" to ${batchIds.length} candidate(s).`,
+      });
+
+      return NextResponse.json({ success: true, message: `Assigned schedule to ${batchIds.length} candidate(s).` });
+    }
 
     // Handle batch status updates
     if (batchIds && Array.isArray(batchIds) && status) {
