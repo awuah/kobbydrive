@@ -68,6 +68,7 @@ export default function AdminDashboardPage() {
   const [genderFilter, setGenderFilter] = useState("all");
   const [scheduleFilter, setScheduleFilter] = useState("all");
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
   // Pagination state (default: 50 records per page)
   const [currentPage, setCurrentPage] = useState(1);
@@ -118,6 +119,7 @@ export default function AdminDashboardPage() {
       const params = new URLSearchParams();
       if (statusFilter && statusFilter !== "all") params.append("status", statusFilter);
       if (searchQuery.trim()) params.append("search", searchQuery.trim());
+      params.append("sort", sortOrder);
       params.append("page", currentPage.toString());
       params.append("limit", pageSize.toString());
 
@@ -149,7 +151,7 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, searchQuery, currentPage, pageSize, adminPasscode, router]);
+  }, [statusFilter, searchQuery, sortOrder, currentPage, pageSize, adminPasscode, router]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -288,6 +290,7 @@ export default function AdminDashboardPage() {
       const params = new URLSearchParams();
       if (statusFilter && statusFilter !== "all") params.append("status", statusFilter);
       if (searchQuery.trim()) params.append("search", searchQuery.trim());
+      params.append("sort", sortOrder);
       params.append("limit", "all");
 
       const res = await fetch(`/api/admin?${params.toString()}`, {
@@ -577,6 +580,18 @@ export default function AdminDashboardPage() {
               <option value="Late afternoon">🌇 Late afternoon (2pm - 6pm)</option>
               <option value="unscheduled">⏳ Unscheduled</option>
             </select>
+
+            <select
+              value={sortOrder}
+              onChange={(e) => {
+                setSortOrder(e.target.value as "desc" | "asc");
+                setCurrentPage(1);
+              }}
+              className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700 focus:ring-2 focus:ring-brand-500 cursor-pointer shadow-2xs"
+            >
+              <option value="desc">⏱️ Applied: Newest First</option>
+              <option value="asc">⏱️ Applied: Oldest First</option>
+            </select>
           </div>
         </div>
 
@@ -653,7 +668,21 @@ export default function AdminDashboardPage() {
                 <th className="p-4">Gender / Age</th>
                 <th className="p-4">ID Details</th>
                 <th className="p-4">Phone / Email</th>
-                <th className="p-4">Applied Date</th>
+                <th
+                  onClick={() => {
+                    setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
+                    setCurrentPage(1);
+                  }}
+                  className="p-4 cursor-pointer hover:text-slate-900 transition-colors select-none"
+                  title="Click to toggle Newest/Oldest sort"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span>Applied Date</span>
+                    <span className="text-brand-600 font-bold text-xs bg-brand-50 px-1 py-0.5 rounded border border-brand-200">
+                      {sortOrder === "desc" ? "Newest ▾" : "Oldest ▴"}
+                    </span>
+                  </div>
+                </th>
                 <th className="p-4">Status</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
@@ -746,8 +775,11 @@ export default function AdminDashboardPage() {
                         </div>
                       </td>
 
-                      <td className="p-4 text-slate-500">
-                        {formatDate(app.created_at)}
+                      <td className="p-4 text-slate-500 whitespace-nowrap">
+                        <div className="font-semibold text-slate-800">{formatDate(app.created_at)}</div>
+                        <div className="text-[11px] text-slate-400 font-mono">
+                          ⏱️ {formatDateTime(app.created_at).split(",")[1]?.trim() || ""}
+                        </div>
                       </td>
 
                       <td className="p-4">

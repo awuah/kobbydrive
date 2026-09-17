@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
     const id = searchParams.get("id");
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "all";
+    const sort = searchParams.get("sort") || "desc";
 
     const supabase = getServiceSupabase();
 
@@ -93,10 +94,11 @@ export async function GET(req: NextRequest) {
       updated_at
     `;
 
+    const isAscending = sort === "asc" || sort === "oldest";
     let query = supabase
       .from("kbdr_applications")
       .select(listFields, { count: "exact" })
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: isAscending });
 
     if (status && status !== "all") {
       query = query.eq("status", status);
