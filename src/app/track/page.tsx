@@ -272,6 +272,16 @@ function TrackContent() {
                     </span>
                   </div>
                   <div>
+                    <span className="text-slate-400 block">Currently Employed?</span>
+                    <span className="font-semibold text-slate-800">
+                      {(() => {
+                        const details = parseTrainingDetails(app.training_purpose);
+                        const isEmp = (app.is_employed || details.is_employed) === "Yes";
+                        return isEmp ? "Yes (Employed)" : "No (Unemployed)";
+                      })()}
+                    </span>
+                  </div>
+                  <div>
                     <span className="text-slate-400 block">Registered Phone</span>
                     <span className="font-semibold text-slate-800">{app.phone_number}</span>
                   </div>

@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
       electoral_area,
       training_purpose,
       training_schedule,
+      is_employed,
       passport_photo,
       signature_data,
     } = body;
@@ -59,10 +60,8 @@ export async function POST(req: NextRequest) {
 
     const rawPurpose = training_purpose?.trim() || "Personal";
     const rawSchedule = training_schedule?.trim() || "unscheduled";
-    const finalPurpose =
-      rawSchedule && rawSchedule !== "unscheduled"
-        ? `${rawPurpose} || Schedule: ${rawSchedule}`
-        : rawPurpose;
+    const rawEmployed = is_employed?.trim() === "Yes" ? "Yes" : "No";
+    const finalPurpose = `${rawPurpose} || Schedule: ${rawSchedule} || Employed: ${rawEmployed}`;
 
     const { data, error } = await supabase
       .from("kbdr_applications")
@@ -159,6 +158,7 @@ export async function POST(req: NextRequest) {
         electoral_area: electoral_area?.trim() || "Amanful West",
         training_purpose: rawPurpose,
         training_schedule: rawSchedule,
+        is_employed: rawEmployed,
         passport_photo,
         signature_data,
         created_at: data.created_at,

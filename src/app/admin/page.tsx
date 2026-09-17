@@ -67,6 +67,7 @@ export default function AdminDashboardPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [genderFilter, setGenderFilter] = useState("all");
   const [scheduleFilter, setScheduleFilter] = useState("all");
+  const [employedFilter, setEmployedFilter] = useState("all");
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
@@ -327,6 +328,7 @@ export default function AdminDashboardPage() {
         "Date of Birth",
         "Place of Birth",
         "Nationality",
+        "Currently Employed",
         "Phone Number",
         "Email",
         "Training Purpose",
@@ -344,6 +346,7 @@ export default function AdminDashboardPage() {
         const details = parseTrainingDetails(app.training_purpose);
         const purpose = app.training_schedule ? app.training_purpose : details.purpose;
         const schedule = app.training_schedule || details.schedule || "unscheduled";
+        const isEmployed = app.is_employed || details.is_employed || "No";
 
         return [
           `"${app.application_number}"`,
@@ -356,6 +359,7 @@ export default function AdminDashboardPage() {
           `"${app.date_of_birth}"`,
           `"${app.place_of_birth.replace(/"/g, '""')}"`,
           `"${app.nationality}"`,
+          `"${isEmployed}"`,
           `"${app.phone_number}"`,
           `"${app.email}"`,
           `"${(purpose || "Personal").replace(/"/g, '""')}"`,
@@ -394,6 +398,11 @@ export default function AdminDashboardPage() {
       } else {
         if (!appSched.includes(scheduleFilter.toLowerCase())) return false;
       }
+    }
+    if (employedFilter !== "all") {
+      const details = parseTrainingDetails(app.training_purpose);
+      const emp = app.is_employed || details.is_employed || "No";
+      if (emp !== employedFilter) return false;
     }
     return true;
   });
@@ -582,6 +591,16 @@ export default function AdminDashboardPage() {
             </select>
 
             <select
+              value={employedFilter}
+              onChange={(e) => setEmployedFilter(e.target.value)}
+              className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-medium text-slate-700 focus:ring-2 focus:ring-brand-500"
+            >
+              <option value="all">All Employment</option>
+              <option value="Yes">💼 Employed (Yes)</option>
+              <option value="No">👤 Unemployed (No)</option>
+            </select>
+
+            <select
               value={sortOrder}
               onChange={(e) => {
                 setSortOrder(e.target.value as "desc" | "asc");
@@ -753,6 +772,21 @@ export default function AdminDashboardPage() {
                               <span className="text-[10px] font-semibold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded">
                                 📍 {app.electoral_area || "Amanful West"}
                               </span>
+                              {(() => {
+                                const details = parseTrainingDetails(app.training_purpose);
+                                const isEmp = (app.is_employed || details.is_employed) === "Yes";
+                                return (
+                                  <span
+                                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+                                      isEmp
+                                        ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                                        : "bg-slate-100 text-slate-600 border-slate-200"
+                                    }`}
+                                  >
+                                    {isEmp ? "💼 Employed" : "Unemployed"}
+                                  </span>
+                                );
+                              })()}
                             </div>
                           </div>
                         </div>

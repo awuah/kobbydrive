@@ -264,10 +264,35 @@ export default function DownloadFormPage() {
           </div>
         </div>
 
-        {/* Section 6: Declaration & Signature */}
+        {/* Section 6: Employment Status */}
+        <div className="mb-6 space-y-3">
+          <div className="bg-slate-900 text-white font-bold px-3 py-1.5 rounded text-xs uppercase tracking-wider">
+            6. Are you currently employed? (Tick One)
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 pt-1">
+            <div className="flex items-center gap-2.5 p-2 border border-slate-200 rounded">
+              <div className="w-4 h-4 border border-slate-400 rounded-sm shrink-0"></div>
+              <div>
+                <div className="font-bold text-[11px] text-slate-900">Yes, I am employed</div>
+                <div className="text-[10px] text-slate-500">Currently working / self-employed</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 p-2 border border-slate-200 rounded">
+              <div className="w-4 h-4 border border-slate-400 rounded-sm shrink-0"></div>
+              <div>
+                <div className="font-bold text-[11px] text-slate-900">No, I am unemployed</div>
+                <div className="text-[10px] text-slate-500">Currently seeking employment</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 7: Declaration & Signature */}
         <div className="mb-6 space-y-3 border-t-2 border-slate-900 pt-4">
           <div className="bg-slate-900 text-white font-bold px-3 py-1.5 rounded text-xs uppercase tracking-wider">
-            6. Candidate Declaration & Signature
+            7. Candidate Declaration & Signature
           </div>
 
           <p className="text-[10px] text-slate-600 leading-relaxed pt-1">

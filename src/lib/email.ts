@@ -21,6 +21,7 @@ export interface ApplicationEmailData {
   electoral_area: string;
   training_purpose: string;
   training_schedule?: string;
+  is_employed?: string;
   passport_photo?: string;
   signature_data?: string;
   created_at: string;
@@ -117,6 +118,7 @@ export async function sendApplicationEmailNotification(
         ${app.postal_address ? `<tr><th>Postal Address</th><td>${app.postal_address}</td></tr>` : ""}
         <tr><th>Driver Training Purpose</th><td><strong style="color: #047857;">${app.training_purpose}</strong></td></tr>
         <tr><th>Preferred Training Schedule</th><td><strong style="color: #0284c7;">${app.training_schedule || "Unscheduled"}</strong></td></tr>
+        <tr><th>Currently Employed?</th><td><strong style="color: ${app.is_employed === "Yes" ? "#047857" : "#475569"};">${app.is_employed === "Yes" ? "Yes (Employed)" : "No (Unemployed)"}</strong></td></tr>
         <tr><th>Submission Timestamp</th><td>${new Date(app.created_at).toLocaleString()}</td></tr>
       </table>
 

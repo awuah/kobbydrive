@@ -21,6 +21,7 @@ import {
   ArrowRight,
   Camera,
   Clock,
+  Briefcase,
   Sunrise,
   Sun,
   Sunset,
@@ -46,6 +47,7 @@ interface FormState {
   electoral_area: string;
   training_purpose: string;
   training_schedule: string;
+  is_employed: string;
   passport_photo: string;
   signature_data: string;
   agreed_terms: boolean;
@@ -69,6 +71,7 @@ const initialFormState: FormState = {
   electoral_area: "",
   training_purpose: "Personal",
   training_schedule: "Early morning 6am to 10am",
+  is_employed: "No",
   passport_photo: "",
   signature_data: "",
   agreed_terms: false,
@@ -118,6 +121,8 @@ export default function ApplicationForm() {
       return "Please select what you will use the driver training for.";
     if (!form.training_schedule)
       return "Please select your preferred training schedule.";
+    if (!form.is_employed)
+      return "Please select your employment status (Yes or No).";
     if (!form.passport_photo)
       return "Passport photograph is required. Please upload your passport picture.";
     if (!form.signature_data) return "Digital signature is required. Please sign in the box below.";
@@ -282,6 +287,12 @@ export default function ApplicationForm() {
                 <div>
                   <span className="text-slate-500 text-xs block">Preferred Schedule</span>
                   <span className="font-semibold text-sky-700">{submittedData.form.training_schedule}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 text-xs block">Currently Employed?</span>
+                  <span className={`font-bold ${submittedData.form.is_employed === "Yes" ? "text-emerald-700" : "text-slate-700"}`}>
+                    {submittedData.form.is_employed === "Yes" ? "Yes (Employed)" : "No (Unemployed)"}
+                  </span>
                 </div>
                 <div>
                   <span className="text-slate-500 text-xs block">Takoradi Electoral Area</span>
@@ -826,6 +837,60 @@ export default function ApplicationForm() {
                     <div className="text-xs font-extrabold text-brand-700 mt-0.5">{sched.time}</div>
                     <p className="text-[11px] text-slate-500 mt-1 leading-snug">{sched.desc}</p>
                   </div>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Employment Status */}
+        <div className="pt-6 border-t border-slate-100">
+          <div className="flex items-center gap-2 mb-1">
+            <Briefcase className="w-4 h-4 text-brand-600" />
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+              Are you currently employed? <span className="text-rose-500">*</span>
+            </label>
+          </div>
+          <p className="text-xs text-slate-500 mb-3.5">
+            Select your current employment status
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg">
+            {[
+              {
+                value: "Yes",
+                label: "Yes, I am employed",
+                desc: "Currently working or self-employed",
+              },
+              {
+                value: "No",
+                label: "No, I am unemployed",
+                desc: "Not currently employed / seeking employment",
+              },
+            ].map((opt) => {
+              const isSelected = form.is_employed === opt.value;
+              return (
+                <label
+                  key={opt.value}
+                  className={`relative p-3.5 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between select-none ${
+                    isSelected
+                      ? "border-brand-600 bg-brand-50/60 ring-2 ring-brand-500/20 shadow-sm"
+                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50"
+                  }`}
+                >
+                  <div>
+                    <h4 className="font-bold text-sm text-slate-900">{opt.label}</h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">{opt.desc}</p>
+                  </div>
+                  <input
+                    type="radio"
+                    name="is_employed"
+                    value={opt.value}
+                    checked={isSelected}
+                    onChange={handleChange}
+                    className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300 ml-3"
+                    required
+                  />
                 </label>
               );
             })}

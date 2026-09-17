@@ -48,10 +48,18 @@ export async function GET(req: NextRequest) {
         .eq("application_id", id)
         .order("created_at", { ascending: false });
 
+      const { purpose, schedule, is_employed } = parseTrainingDetails(application.training_purpose);
+      const mappedApplication = {
+        ...application,
+        training_purpose: purpose,
+        training_schedule: schedule,
+        is_employed,
+      };
+
       return NextResponse.json(
         {
           success: true,
-          data: application,
+          data: mappedApplication,
           logs: logs || [],
         },
         { status: 200 }
@@ -158,11 +166,12 @@ export async function GET(req: NextRequest) {
     const totalCount = count ?? applications?.length ?? 0;
 
     const mappedApplications = (applications || []).map((app) => {
-      const { purpose, schedule } = parseTrainingDetails(app.training_purpose);
+      const { purpose, schedule, is_employed } = parseTrainingDetails(app.training_purpose);
       return {
         ...app,
         training_purpose: purpose,
         training_schedule: schedule,
+        is_employed,
       };
     });
 
@@ -210,12 +219,8 @@ export async function PATCH(req: NextRequest) {
         .in("id", batchIds);
 
       for (const app of (batchApps || [])) {
-        let basePurpose = "Personal";
-        if (app.training_purpose) {
-          const parts = app.training_purpose.split("|| Schedule: ");
-          basePurpose = parts[0].trim() || "Personal";
-        }
-        const updatedPurpose = `${basePurpose} || Schedule: ${training_schedule}`;
+        const details = parseTrainingDetails(app.training_purpose);
+        const updatedPurpose = `${details.purpose} || Schedule: ${training_schedule} || Employed: ${details.is_employed || "No"}`;
         await supabase
           .from("kbdr_applications")
           .update({

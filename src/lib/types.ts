@@ -78,6 +78,7 @@ export interface Application {
   phone_number: string;
   training_purpose?: TrainingPurposeType | string;
   training_schedule?: TrainingScheduleType | string;
+  is_employed?: "Yes" | "No" | string;
   cohort_id?: string | null;
   cohort_name?: string | null;
   cohort_start_date?: string | null;

@@ -137,29 +137,55 @@ export const TRAINING_SCHEDULES = [
 export function parseTrainingDetails(trainingPurposeRaw?: string | null): {
   purpose: string;
   schedule: string;
+  is_employed: "Yes" | "No" | string;
 } {
   if (!trainingPurposeRaw || !trainingPurposeRaw.trim()) {
-    return { purpose: "Personal", schedule: "unscheduled" };
+    return { purpose: "Personal", schedule: "unscheduled", is_employed: "No" };
   }
 
-  const raw = trainingPurposeRaw.trim();
+  let raw = trainingPurposeRaw.trim();
+  let is_employed = "No";
+  let schedule = "unscheduled";
+  let purpose = raw;
+
+  // Check for || Employed: Yes / No
+  if (raw.includes("|| Employed: ")) {
+    const empParts = raw.split("|| Employed: ");
+    raw = empParts[0].trim();
+    const rest = empParts[1].trim();
+    if (rest.includes("|| Schedule: ")) {
+      const restParts = rest.split("|| Schedule: ");
+      is_employed = restParts[0].trim();
+      schedule = restParts[1].trim();
+    } else {
+      is_employed = rest.trim();
+    }
+  }
+
   if (raw.includes("|| Schedule: ")) {
     const parts = raw.split("|| Schedule: ");
-    return {
-      purpose: parts[0].trim() || "Personal",
-      schedule: parts[1].trim() || "unscheduled",
-    };
-  }
-
-  if (raw.includes("[Schedule: ") && raw.endsWith("]")) {
+    purpose = parts[0].trim() || "Personal";
+    const schedPart = parts[1].trim();
+    if (schedPart.includes("|| Employed: ")) {
+      const empParts = schedPart.split("|| Employed: ");
+      schedule = empParts[0].trim() || "unscheduled";
+      is_employed = empParts[1].trim() || is_employed;
+    } else {
+      schedule = schedPart || "unscheduled";
+    }
+  } else if (raw.includes("[Schedule: ") && raw.endsWith("]")) {
     const parts = raw.slice(0, -1).split("[Schedule: ");
-    return {
-      purpose: parts[0].trim() || "Personal",
-      schedule: parts[1].trim() || "unscheduled",
-    };
+    purpose = parts[0].trim() || "Personal";
+    schedule = parts[1].trim() || "unscheduled";
+  } else {
+    purpose = raw;
   }
 
-  return { purpose: raw, schedule: "unscheduled" };
+  return {
+    purpose: purpose || "Personal",
+    schedule: schedule || "unscheduled",
+    is_employed: is_employed === "Yes" ? "Yes" : "No",
+  };
 }
 
 export function formatTrainingScheduleBadge(schedule?: string | null): {

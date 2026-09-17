@@ -21,6 +21,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
+  Briefcase,
   Send,
   Loader2,
   FileText,
@@ -333,6 +334,21 @@ export default function ApplicationDetailsModal({
                           </span>
                           <span className={`px-2 py-0.5 rounded text-[11px] border ${schedBadge.badgeClass}`}>
                             {schedBadge.label}
+                          </span>
+                        </div>
+
+                        <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                          <span className="text-slate-500 font-medium flex items-center gap-1">
+                            <Briefcase className="w-3.5 h-3.5 text-slate-400" /> Currently Employed?
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded text-[11px] font-bold border ${
+                              (application.is_employed || details.is_employed) === "Yes"
+                                ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                                : "bg-slate-100 text-slate-700 border-slate-300"
+                            }`}
+                          >
+                            {(application.is_employed || details.is_employed) === "Yes" ? "Yes (Employed)" : "No (Unemployed)"}
                           </span>
                         </div>
                       </>
