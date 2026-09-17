@@ -22,7 +22,8 @@ export async function GET(req: NextRequest) {
       .from("kbdr_applications")
       .select("id, application_number, surname, last_name, phone_number, electoral_area, id_number, training_purpose, status")
       .in("status", ["approved", "in_training", "completed"])
-      .order("surname", { ascending: true });
+      .order("surname", { ascending: true })
+      .range(0, 49999);
 
     return NextResponse.json({
       success: true,

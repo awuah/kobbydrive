@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
     const page = isNaN(pageParam) || pageParam < 1 ? 1 : pageParam;
     const limitParam = searchParams.get("limit");
     const isAll = limitParam === "all";
-    const limit = isAll ? 5000 : parseInt(limitParam || "50", 10) || 50;
+    const limit = isAll ? 50000 : parseInt(limitParam || "50", 10) || 50;
 
     const from = (page - 1) * limit;
     const to = from + limit - 1;
@@ -111,7 +111,9 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    if (!isAll) {
+    if (isAll) {
+      query = query.range(0, 49999);
+    } else {
       query = query.range(from, to);
     }
 
@@ -122,15 +124,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    // Calculate dashboard statistics across all records
-    const { data: allStatsRows } = await supabase
+    // Calculate dashboard statistics across all records without 1000 row limit
+    const { data: allStatsRows, count: totalDbCount } = await supabase
       .from("kbdr_applications")
-      .select("status, created_at");
+      .select("status, created_at", { count: "exact" })
+      .range(0, 49999);
 
     const todayStr = new Date().toISOString().split("T")[0];
 
     const stats: DashboardStats = {
-      total: allStatsRows?.length || 0,
+      total: totalDbCount ?? allStatsRows?.length ?? 0,
       pending: 0,
       under_review: 0,
       approved: 0,

@@ -61,7 +61,8 @@ export async function GET(req: NextRequest) {
     // Fetch all applications' electoral area & status for complete summary
     const { data: records, error } = await supabase
       .from("kbdr_applications")
-      .select("electoral_area, status");
+      .select("electoral_area, status")
+      .range(0, 49999);
 
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
