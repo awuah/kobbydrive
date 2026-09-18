@@ -366,6 +366,12 @@ export default function AdminDashboardPage() {
         "Created At",
       ];
 
+      const cleanCell = (val: string | number | null | undefined) => {
+        if (val === null || val === undefined) return '""';
+        const str = String(val).replace(/\r?\n/g, " ").replace(/"/g, '""');
+        return `"${str}"`;
+      };
+
       const rows = exportList.map((app) => {
         const details = parseTrainingDetails(app.training_purpose);
         const purpose = app.training_schedule ? app.training_purpose : details.purpose;
@@ -373,39 +379,41 @@ export default function AdminDashboardPage() {
         const isEmployed = app.is_employed || details.is_employed || "No";
 
         return [
-          `"${app.application_number}"`,
-          `"${app.title}"`,
-          `"${app.surname.replace(/"/g, '""')}"`,
-          `"${app.last_name.replace(/"/g, '""')}"`,
-          `"${app.gender}"`,
-          `"${app.id_type}"`,
-          `"${app.id_number}"`,
-          `"${app.date_of_birth}"`,
-          `"${app.place_of_birth.replace(/"/g, '""')}"`,
-          `"${app.nationality}"`,
-          `"${isEmployed}"`,
-          `"${app.phone_number}"`,
-          `"${app.email}"`,
-          `"${(purpose || "Personal").replace(/"/g, '""')}"`,
-          `"${schedule.replace(/"/g, '""')}"`,
-          `"${(app.electoral_area || "Amanful West").replace(/"/g, '""')}"`,
-          `"${(app.house_number || "").replace(/"/g, '""')}"`,
-          `"${app.house_address.replace(/"/g, '""')}"`,
-          `"${(app.postal_address || "").replace(/"/g, '""')}"`,
-          `"${app.status}"`,
-          `"${(app.admin_notes || "").replace(/"/g, '""')}"`,
-          `"${app.created_at}"`,
+          cleanCell(app.application_number),
+          cleanCell(app.title),
+          cleanCell(app.surname),
+          cleanCell(app.last_name),
+          cleanCell(app.gender),
+          cleanCell(app.id_type),
+          cleanCell(app.id_number),
+          cleanCell(app.date_of_birth),
+          cleanCell(app.place_of_birth),
+          cleanCell(app.nationality),
+          cleanCell(isEmployed),
+          cleanCell(app.phone_number),
+          cleanCell(app.email),
+          cleanCell(purpose || "Personal"),
+          cleanCell(schedule),
+          cleanCell(app.electoral_area || "Amanful West"),
+          cleanCell(app.house_number || ""),
+          cleanCell(app.house_address),
+          cleanCell(app.postal_address || ""),
+          cleanCell(app.status),
+          cleanCell(app.admin_notes || ""),
+          cleanCell(app.created_at),
         ];
       });
 
-      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-      const encodedUri = encodeURI(csvContent);
+      const csvString = "\uFEFF" + [headers.join(","), ...rows.map((r) => r.join(","))].join("\r\n");
+      const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
+      link.setAttribute("href", url);
       link.setAttribute("download", `kobbydrive_applications_${new Date().toISOString().split("T")[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     } catch (err) {
       console.error("CSV export error:", err);
     } finally {
