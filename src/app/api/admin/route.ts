@@ -102,34 +102,109 @@ export async function GET(req: NextRequest) {
       updated_at
     `;
 
+    const csvExportFields = `
+      id,
+      application_number,
+      surname,
+      last_name,
+      title,
+      gender,
+      id_type,
+      id_number,
+      date_of_birth,
+      place_of_birth,
+      postal_address,
+      house_number,
+      house_address,
+      nationality,
+      email,
+      phone_number,
+      electoral_area,
+      training_purpose,
+      status,
+      admin_notes,
+      created_at,
+      updated_at
+    `;
+
     const isAscending = sort === "asc" || sort === "oldest";
-    let query = supabase
-      .from("kbdr_applications")
-      .select(listFields, { count: "exact" })
-      .order("created_at", { ascending: isAscending });
-
-    if (status && status !== "all") {
-      query = query.eq("status", status);
-    }
-
-    if (search.trim()) {
-      const s = `%${search.trim()}%`;
-      query = query.or(
-        `surname.ilike.${s},last_name.ilike.${s},application_number.ilike.${s},phone_number.ilike.${s},email.ilike.${s},id_number.ilike.${s}`
-      );
-    }
+    let applications: any[] = [];
+    let totalCount = 0;
 
     if (isAll) {
-      query = query.range(0, 49999);
+      let pageIdx = 0;
+      const pageSize = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const fromIdx = pageIdx * pageSize;
+        const toIdx = fromIdx + pageSize - 1;
+
+        let exportQuery = supabase
+          .from("kbdr_applications")
+          .select(csvExportFields, { count: pageIdx === 0 ? "exact" : undefined })
+          .order("created_at", { ascending: isAscending })
+          .range(fromIdx, toIdx);
+
+        if (status && status !== "all") {
+          exportQuery = exportQuery.eq("status", status);
+        }
+
+        if (search.trim()) {
+          const s = `%${search.trim()}%`;
+          exportQuery = exportQuery.or(
+            `surname.ilike.${s},last_name.ilike.${s},application_number.ilike.${s},phone_number.ilike.${s},email.ilike.${s},id_number.ilike.${s}`
+          );
+        }
+
+        const { data: chunk, count: totalRows, error: chunkErr } = await exportQuery;
+
+        if (chunkErr) {
+          console.error("Export all query error:", chunkErr);
+          return NextResponse.json({ success: false, error: chunkErr.message }, { status: 500 });
+        }
+
+        if (pageIdx === 0 && totalRows !== null && totalRows !== undefined) {
+          totalCount = totalRows;
+        }
+
+        if (!chunk || chunk.length === 0) {
+          hasMore = false;
+        } else {
+          applications.push(...chunk);
+          if (chunk.length < pageSize) {
+            hasMore = false;
+          } else {
+            pageIdx++;
+          }
+        }
+      }
+      if (!totalCount) totalCount = applications.length;
     } else {
-      query = query.range(from, to);
-    }
+      let query = supabase
+        .from("kbdr_applications")
+        .select(listFields, { count: "exact" })
+        .order("created_at", { ascending: isAscending })
+        .range(from, to);
 
-    const { data: applications, count, error } = await query;
+      if (status && status !== "all") {
+        query = query.eq("status", status);
+      }
 
-    if (error) {
-      console.error("Fetch applications error:", error);
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+      if (search.trim()) {
+        const s = `%${search.trim()}%`;
+        query = query.or(
+          `surname.ilike.${s},last_name.ilike.${s},application_number.ilike.${s},phone_number.ilike.${s},email.ilike.${s},id_number.ilike.${s}`
+        );
+      }
+
+      const { data, count, error } = await query;
+      if (error) {
+        console.error("Fetch applications error:", error);
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+      }
+      applications = data || [];
+      totalCount = count ?? applications.length;
     }
 
     // Calculate dashboard statistics across all records without 1000 row limit
@@ -162,8 +237,6 @@ export async function GET(req: NextRequest) {
         }
       });
     }
-
-    const totalCount = count ?? applications?.length ?? 0;
 
     const mappedApplications = (applications || []).map((app) => {
       const { purpose, schedule, is_employed } = parseTrainingDetails(app.training_purpose);

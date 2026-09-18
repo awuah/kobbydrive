@@ -79,6 +79,7 @@ export default function AdminDashboardPage() {
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [batchLoading, setBatchLoading] = useState(false);
+  const [exportingCSV, setExportingCSV] = useState(false);
   const [showBatchRejectModal, setShowBatchRejectModal] = useState(false);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -288,6 +289,7 @@ export default function AdminDashboardPage() {
   // Export to CSV (fetches full matching set)
   const handleExportCSV = async () => {
     try {
+      setExportingCSV(true);
       const params = new URLSearchParams();
       if (statusFilter && statusFilter !== "all") params.append("status", statusFilter);
       if (searchQuery.trim()) params.append("search", searchQuery.trim());
@@ -300,7 +302,29 @@ export default function AdminDashboardPage() {
         },
       });
       const data = await res.json();
-      const exportList: Application[] = data.success ? data.data : applications;
+      let exportList: Application[] = data.success ? data.data : applications;
+
+      if (genderFilter !== "all") {
+        exportList = exportList.filter((app) => app.gender === genderFilter);
+      }
+      if (scheduleFilter !== "all") {
+        exportList = exportList.filter((app) => {
+          const details = parseTrainingDetails(app.training_purpose);
+          const appSched = (app.training_schedule || details.schedule || "unscheduled").toLowerCase();
+          if (scheduleFilter === "unscheduled") {
+            return appSched === "unscheduled";
+          } else {
+            return appSched.includes(scheduleFilter.toLowerCase());
+          }
+        });
+      }
+      if (employedFilter !== "all") {
+        exportList = exportList.filter((app) => {
+          const details = parseTrainingDetails(app.training_purpose);
+          const emp = app.is_employed || details.is_employed || "No";
+          return emp === employedFilter;
+        });
+      }
 
       if (!exportList || exportList.length === 0) return;
 
@@ -384,6 +408,8 @@ export default function AdminDashboardPage() {
       document.body.removeChild(link);
     } catch (err) {
       console.error("CSV export error:", err);
+    } finally {
+      setExportingCSV(false);
     }
   };
 
@@ -506,9 +532,18 @@ export default function AdminDashboardPage() {
 
           <button
             onClick={handleExportCSV}
-            className="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
+            disabled={exportingCSV}
+            className="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer disabled:cursor-not-allowed"
           >
-            <Download className="w-3.5 h-3.5" /> Export CSV
+            {exportingCSV ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Exporting All...
+              </>
+            ) : (
+              <>
+                <Download className="w-3.5 h-3.5" /> Export CSV
+              </>
+            )}
           </button>
 
           <button
