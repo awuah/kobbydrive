@@ -6,6 +6,16 @@ import { isValidAdminPasscode, getAdminFromRequest } from "@/lib/auth";
 import { recordAdminActivity } from "@/lib/activity-logger";
 import { parseTrainingDetails } from "@/lib/utils";
 
+// In-memory cached stats with 30-second TTL to eliminate redundant full-table scans
+let cachedStats: DashboardStats | null = null;
+let statsCachedAt = 0;
+const STATS_CACHE_TTL_MS = 30000; // 30s
+
+function invalidateAdminStatsCache() {
+  cachedStats = null;
+  statsCachedAt = 0;
+}
+
 // Auth check via header or cookie using authorized passcodes
 function isAuthenticated(req: NextRequest): boolean {
   const auth = getAdminFromRequest(req);
@@ -95,7 +105,6 @@ export async function GET(req: NextRequest) {
       phone_number,
       electoral_area,
       training_purpose,
-      passport_photo,
       status,
       admin_notes,
       created_at,
@@ -207,35 +216,45 @@ export async function GET(req: NextRequest) {
       totalCount = count ?? applications.length;
     }
 
-    // Calculate dashboard statistics across all records without 1000 row limit
-    const { data: allStatsRows, count: totalDbCount } = await supabase
-      .from("kbdr_applications")
-      .select("status, created_at", { count: "exact" })
-      .range(0, 49999);
+    // Calculate dashboard statistics with in-memory cache to prevent database I/O exhaustion
+    let stats: DashboardStats;
+    const now = Date.now();
 
-    const todayStr = new Date().toISOString().split("T")[0];
+    if (cachedStats && now - statsCachedAt < STATS_CACHE_TTL_MS) {
+      stats = cachedStats;
+    } else {
+      const { data: allStatsRows, count: totalDbCount } = await supabase
+        .from("kbdr_applications")
+        .select("status, created_at", { count: "exact" })
+        .range(0, 49999);
 
-    const stats: DashboardStats = {
-      total: totalDbCount ?? allStatsRows?.length ?? 0,
-      pending: 0,
-      under_review: 0,
-      approved: 0,
-      in_training: 0,
-      completed: 0,
-      rejected: 0,
-      todayCount: 0,
-    };
+      const todayStr = new Date().toISOString().split("T")[0];
 
-    if (allStatsRows) {
-      allStatsRows.forEach((row) => {
-        const s = row.status as keyof Omit<DashboardStats, "total" | "todayCount">;
-        if (s && stats[s] !== undefined) {
-          stats[s]++;
-        }
-        if (row.created_at && row.created_at.startsWith(todayStr)) {
-          stats.todayCount++;
-        }
-      });
+      stats = {
+        total: totalDbCount ?? allStatsRows?.length ?? 0,
+        pending: 0,
+        under_review: 0,
+        approved: 0,
+        in_training: 0,
+        completed: 0,
+        rejected: 0,
+        todayCount: 0,
+      };
+
+      if (allStatsRows) {
+        allStatsRows.forEach((row) => {
+          const s = row.status as keyof Omit<DashboardStats, "total" | "todayCount">;
+          if (s && stats[s] !== undefined) {
+            stats[s]++;
+          }
+          if (row.created_at && row.created_at.startsWith(todayStr)) {
+            stats.todayCount++;
+          }
+        });
+      }
+
+      cachedStats = stats;
+      statsCachedAt = now;
     }
 
     const mappedApplications = (applications || []).map((app) => {
@@ -341,6 +360,8 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
       }
 
+      invalidateAdminStatsCache();
+
       // Record Activity Log for batch update
       const appNumbers = (batchApps || []).map((a) => a.application_number).slice(0, 5).join(", ");
       const batchActionType = status === "approved" ? "BATCH_APPROVED" : status === "rejected" ? "BATCH_REJECTED" : "BATCH_STATUS_UPDATE";
@@ -416,6 +437,8 @@ export async function PATCH(req: NextRequest) {
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
+
+    invalidateAdminStatsCache();
 
     const candidateName = `${currentApp?.title || ""} ${currentApp?.surname || ""} ${currentApp?.last_name || ""}`.trim();
     const actionType =
@@ -512,6 +535,8 @@ export async function DELETE(req: NextRequest) {
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
+
+    invalidateAdminStatsCache();
 
     // Record Activity Log
     if (targetApp) {

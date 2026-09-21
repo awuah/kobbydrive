@@ -789,8 +789,8 @@ export default function AdminDashboardPage() {
                               />
                             </div>
                           ) : (
-                            <div className="w-9 h-11 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0 text-[10px] font-bold">
-                              KBD
+                            <div className="w-9 h-11 rounded-lg bg-gradient-to-br from-brand-50 to-brand-100 border border-brand-200/60 flex items-center justify-center text-brand-700 font-bold shrink-0 text-xs shadow-xs">
+                              {((app.surname?.[0] || "") + (app.last_name?.[0] || "")).toUpperCase() || "KD"}
                             </div>
                           )}
                           <div>

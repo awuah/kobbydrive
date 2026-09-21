@@ -46,6 +46,10 @@ function normalizeArea(rawArea: string | null | undefined): string {
   return rawArea.trim();
 }
 
+let cachedSummaryData: any = null;
+let summaryCachedAt = 0;
+const SUMMARY_CACHE_TTL = 60000; // 60 seconds
+
 export async function GET(req: NextRequest) {
   try {
     const auth = getAdminFromRequest(req);
@@ -54,6 +58,11 @@ export async function GET(req: NextRequest) {
         { success: false, error: "Unauthorized access: Passcode required." },
         { status: 401 }
       );
+    }
+
+    const now = Date.now();
+    if (cachedSummaryData && now - summaryCachedAt < SUMMARY_CACHE_TTL) {
+      return NextResponse.json(cachedSummaryData, { status: 200 });
     }
 
     const supabase = getServiceSupabase();
@@ -160,22 +169,24 @@ export async function GET(req: NextRequest) {
       return b.registered - a.registered;
     });
 
-    return NextResponse.json(
-      {
-        success: true,
-        summary: {
-          totalRegistered,
-          totalTrained,
-          totalApproved,
-          totalInTraining,
-          totalCompleted,
-          totalRejected,
-          totalPending,
-        },
-        breakdown,
+    const resultPayload = {
+      success: true,
+      summary: {
+        totalRegistered,
+        totalTrained,
+        totalApproved,
+        totalInTraining,
+        totalCompleted,
+        totalRejected,
+        totalPending,
       },
-      { status: 200 }
-    );
+      breakdown,
+    };
+
+    cachedSummaryData = resultPayload;
+    summaryCachedAt = now;
+
+    return NextResponse.json(resultPayload, { status: 200 });
   } catch (err: any) {
     console.error("Summary GET error:", err);
     return NextResponse.json(

@@ -3,6 +3,10 @@ import { getServiceSupabase } from "@/lib/supabase";
 import { getAdminFromRequest } from "@/lib/auth";
 import { recordAdminActivity } from "@/lib/activity-logger";
 
+let cachedOperationsData: any = null;
+let operationsCachedAt = 0;
+const OPERATIONS_CACHE_TTL = 60000; // 60 seconds
+
 export async function GET(req: NextRequest) {
   try {
     const auth = getAdminFromRequest(req);
@@ -11,6 +15,11 @@ export async function GET(req: NextRequest) {
         { success: false, error: "Unauthorized access" },
         { status: 401 }
       );
+    }
+
+    const now = Date.now();
+    if (cachedOperationsData && now - operationsCachedAt < OPERATIONS_CACHE_TTL) {
+      return NextResponse.json(cachedOperationsData, { status: 200 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -25,10 +34,15 @@ export async function GET(req: NextRequest) {
       .order("surname", { ascending: true })
       .range(0, 49999);
 
-    return NextResponse.json({
+    const payload = {
       success: true,
       candidates: candidates || [],
-    });
+    };
+
+    cachedOperationsData = payload;
+    operationsCachedAt = now;
+
+    return NextResponse.json(payload, { status: 200 });
   } catch (err: any) {
     console.error("Operations API GET error:", err);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
