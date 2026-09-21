@@ -238,9 +238,9 @@ export async function GET(req: NextRequest) {
     `);
 
     if (ref) {
-      query = query.ilike("application_number", ref.trim());
+      query = query.ilike("application_number", ref.trim()).limit(1);
     } else if (phone) {
-      query = query.ilike("phone_number", `%${phone.trim()}%`);
+      query = query.ilike("phone_number", `%${phone.trim()}%`).limit(5);
     }
 
     const { data, error } = await query;

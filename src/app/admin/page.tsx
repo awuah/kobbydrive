@@ -64,6 +64,7 @@ export default function AdminDashboardPage() {
 
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [genderFilter, setGenderFilter] = useState("all");
   const [scheduleFilter, setScheduleFilter] = useState("all");
@@ -71,11 +72,24 @@ export default function AdminDashboardPage() {
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
+  // Debounce search input by 350ms to protect database from query storms
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   // Pagination state (default: 50 records per page)
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+
+  // Reset to page 1 on filter or search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, statusFilter, sortOrder]);
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [batchLoading, setBatchLoading] = useState(false);
@@ -120,7 +134,7 @@ export default function AdminDashboardPage() {
     try {
       const params = new URLSearchParams();
       if (statusFilter && statusFilter !== "all") params.append("status", statusFilter);
-      if (searchQuery.trim()) params.append("search", searchQuery.trim());
+      if (debouncedSearch.trim()) params.append("search", debouncedSearch.trim());
       params.append("sort", sortOrder);
       params.append("page", currentPage.toString());
       params.append("limit", pageSize.toString());
@@ -153,7 +167,7 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, searchQuery, sortOrder, currentPage, pageSize, adminPasscode, router]);
+  }, [statusFilter, debouncedSearch, sortOrder, currentPage, pageSize, adminPasscode, router]);
 
   useEffect(() => {
     if (isAuthenticated) {
