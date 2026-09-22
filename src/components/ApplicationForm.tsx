@@ -81,6 +81,7 @@ export default function ApplicationForm() {
   const [form, setForm] = useState<FormState>(initialFormState);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [duplicateRef, setDuplicateRef] = useState<string | null>(null);
   const [submittedData, setSubmittedData] = useState<{
     application_number: string;
     submitted_at: string;
@@ -143,6 +144,8 @@ export default function ApplicationForm() {
       return;
     }
 
+    setError(null);
+    setDuplicateRef(null);
     setLoading(true);
 
     try {
@@ -155,6 +158,9 @@ export default function ApplicationForm() {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
+        if (data.duplicateApplicationNumber) {
+          setDuplicateRef(data.duplicateApplicationNumber);
+        }
         throw new Error(data.error || "Failed to submit application. Please try again.");
       }
 
@@ -349,11 +355,23 @@ export default function ApplicationForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {error && (
-        <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-start gap-3">
+        <div className="p-4 sm:p-5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 flex items-start gap-3.5 shadow-sm">
           <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-          <div>
-            <h4 className="font-semibold text-sm">Please correct the following:</h4>
-            <p className="text-sm mt-0.5">{error}</p>
+          <div className="flex-1">
+            <h4 className="font-bold text-sm text-rose-900">
+              {duplicateRef ? "Duplicate Application Detected" : "Please correct the following:"}
+            </h4>
+            <p className="text-xs sm:text-sm mt-1 leading-relaxed text-rose-800">{error}</p>
+            {duplicateRef && (
+              <div className="mt-3">
+                <Link
+                  href={`/track?ref=${encodeURIComponent(duplicateRef)}`}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition-all shadow-sm shadow-brand-600/20"
+                >
+                  Track Existing Application ({duplicateRef}) <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -56,6 +56,61 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = getServiceSupabase();
+
+    // Check for duplicate ID Number to prevent multiple applications with the same ID
+    const rawId = id_number.trim();
+    const alphaNum = rawId.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const digitsOnly = rawId.replace(/[^0-9]/g, "");
+
+    const matchConditions = [
+      `id_number.ilike.${rawId}`,
+      `id_number.ilike.${alphaNum}`,
+    ];
+
+    if (digitsOnly.length >= 8) {
+      matchConditions.push(`id_number.ilike.%${digitsOnly}%`);
+      if (digitsOnly.length === 10) {
+        const formattedGhana = `${digitsOnly.slice(0, 9)}-${digitsOnly.slice(9)}`;
+        matchConditions.push(`id_number.ilike.%${formattedGhana}%`);
+      }
+    }
+
+    const { data: existingApps } = await supabase
+      .from("kbdr_applications")
+      .select("id, application_number, id_type, id_number, surname, last_name, created_at, status")
+      .or(matchConditions.join(","))
+      .limit(5);
+
+    if (existingApps && existingApps.length > 0) {
+      for (const existing of existingApps) {
+        const existingAlpha = (existing.id_number || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+        const existingDigits = (existing.id_number || "").replace(/[^0-9]/g, "");
+
+        const isMatch =
+          existingAlpha === alphaNum ||
+          (digitsOnly.length >= 8 && existingDigits === digitsOnly) ||
+          existing.id_number.trim().toLowerCase() === rawId.toLowerCase();
+
+        if (isMatch) {
+          const dateFormatted = existing.created_at
+            ? new Date(existing.created_at).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })
+            : "";
+          return NextResponse.json(
+            {
+              success: false,
+              error: `An application with this ${id_type || "ID"} (${rawId}) has already been registered under Reference ${existing.application_number}${dateFormatted ? ` on ${dateFormatted}` : ""}. Duplicate applications with the same ID are not permitted.`,
+              duplicateApplicationNumber: existing.application_number,
+            },
+            { status: 409 }
+          );
+        }
+      }
+    }
+
     const applicationNumber = generateApplicationNumber();
 
     const rawPurpose = training_purpose?.trim() || "Personal";
