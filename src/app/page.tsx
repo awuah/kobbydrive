@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ApplicationForm from "@/components/ApplicationForm";
+import NoticeModal from "@/components/NoticeModal";
 import {
   Car,
   CheckCircle2,
@@ -14,11 +15,14 @@ import {
   FileDown,
   Printer,
   FileText,
+  Search,
+  ArrowRight,
 } from "lucide-react";
 
 export default function HomePage() {
   return (
     <div className="min-h-screen">
+      <NoticeModal />
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-b from-slate-900 via-slate-900 to-slate-800 text-white py-16 sm:py-24">
         {/* Subtle Background Glows */}
@@ -80,58 +84,34 @@ export default function HomePage() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
-            <a
-              href="#application-form"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-sm transition-all shadow-lg shadow-brand-500/25"
-            >
-              Fill Online Form <ArrowDown className="w-4 h-4" />
-            </a>
-
             <Link
-              href="/download-form"
+              href="/track"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-sm transition-all shadow-lg shadow-brand-500/25 group"
+            >
+              <Search className="w-4 h-4" /> Check Application Status <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+
+            <a
+              href="#application-notice"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 text-white font-bold text-sm border border-slate-700 transition-all shadow-md hover:border-slate-600"
             >
-              <FileDown className="w-4 h-4 text-brand-400" /> Download PDF Form
-            </Link>
+              <Clock className="w-4 h-4 text-amber-400" /> View Review Notice
+            </a>
           </div>
         </div>
       </section>
 
-      {/* Main Form Section */}
-      <section id="application-form" className="py-12 sm:py-16 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Offline Form Notice Banner */}
-        <div className="mb-8 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200/80 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-200">
-              <FileText className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="font-bold text-slate-900 text-sm">
-                Prefer to fill out a paper form by hand?
-              </h4>
-              <p className="text-xs text-slate-600 mt-0.5">
-                Download and print the official blank registration form to complete offline at your convenience.
-              </p>
-            </div>
-          </div>
-
-          <Link
-            href="/download-form"
-            className="w-full sm:w-auto shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-sm transition-colors"
-          >
-            <FileDown className="w-4 h-4" /> Download Blank PDF Form
-          </Link>
-        </div>
-
+      {/* Main Notice / Form Section */}
+      <section id="application-notice" className="py-12 sm:py-16 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10 space-y-2">
-          <span className="text-xs uppercase font-extrabold tracking-wider text-brand-700 bg-brand-100 px-3 py-1 rounded-full border border-brand-200">
-            Public Registration Portal
+          <span className="text-xs uppercase font-extrabold tracking-wider text-amber-800 bg-amber-100 px-3 py-1 rounded-full border border-amber-200">
+            Public Registration Notice
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Applicant Registration Form
+            Applications Currently Paused
           </h2>
           <p className="text-sm text-slate-600 max-w-xl mx-auto">
-            Please fill in all 14 required fields accurately. Once submitted, you will receive an official Application Number to track your progress.
+            We are currently reviewing applications. If you have already registered, you can track the status of your enrollment.
           </p>
         </div>
 

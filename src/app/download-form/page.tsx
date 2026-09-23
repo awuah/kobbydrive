@@ -69,6 +69,15 @@ export default function DownloadFormPage() {
             </button>
           </div>
         </div>
+
+        <div className="mt-3 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs">
+          <p>
+            <strong>Important Notice:</strong> We are currently reviewing applications and as such, no longer accepting new applications. New submissions will not be processed at this time.
+          </p>
+          <Link href="/track" className="shrink-0 font-bold text-brand-700 hover:text-brand-800 underline">
+            Track Application Status &rarr;
+          </Link>
+        </div>
       </div>
 
       {/* A4 Printable Document Container */}

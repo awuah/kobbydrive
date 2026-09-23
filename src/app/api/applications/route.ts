@@ -4,7 +4,21 @@ import { generateApplicationNumber, parseTrainingDetails } from "@/lib/utils";
 import { sendApplicationReceivedSMS } from "@/lib/sms";
 import { sendApplicationEmailNotification } from "@/lib/email";
 
+const APPLICATIONS_CLOSED = true;
+
 export async function POST(req: NextRequest) {
+  // Application intake is currently paused while applications are under review
+  if (APPLICATIONS_CLOSED) {
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          "We are currently reviewing applications and as such, no longer accepting new applications. You can check later for when we re-open for new applications. If you are already registered and want to check the status of your application, please check your status on the tracker.",
+      },
+      { status: 403 }
+    );
+  }
+
   try {
     const body = await req.json();
     const {
@@ -81,7 +95,7 @@ export async function POST(req: NextRequest) {
       .or(matchConditions.join(","))
       .limit(5);
 
-    if (existingApps && existingApps.length > 0) {
+    if (Array.isArray(existingApps) && existingApps.length > 0) {
       for (const existing of existingApps) {
         const existingAlpha = (existing.id_number || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
         const existingDigits = (existing.id_number || "").replace(/[^0-9]/g, "");

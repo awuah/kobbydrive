@@ -25,6 +25,7 @@ import {
   Sunrise,
   Sun,
   Sunset,
+  Search,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import Link from "next/link";
@@ -76,6 +77,8 @@ const initialFormState: FormState = {
   signature_data: "",
   agreed_terms: false,
 };
+
+const APPLICATIONS_CLOSED = true;
 
 export default function ApplicationForm() {
   const [form, setForm] = useState<FormState>(initialFormState);
@@ -347,6 +350,49 @@ export default function ApplicationForm() {
               </Link>
             </div>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (APPLICATIONS_CLOSED) {
+    return (
+      <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-xl max-w-3xl mx-auto space-y-6 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700 mx-auto shadow-sm">
+          <Clock className="w-8 h-8" />
+        </div>
+
+        <div className="space-y-2">
+          <span className="text-xs uppercase font-extrabold tracking-wider text-amber-800 bg-amber-100 px-3.5 py-1 rounded-full border border-amber-200">
+            Intake Temporarily Paused
+          </span>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight pt-1">
+            Applications Under Review
+          </h3>
+        </div>
+
+        <div className="p-5 sm:p-6 rounded-2xl bg-amber-50/80 border border-amber-200/80 text-slate-800 text-sm sm:text-base leading-relaxed text-left max-w-2xl mx-auto">
+          <p>
+            We are currently reviewing applications and as such, no longer accepting new applications. You can check later for when we re-open for new applications. If you are already registered and want to check the status of your application, you can{" "}
+            <Link
+              href="/track"
+              className="font-bold text-brand-700 hover:text-brand-800 underline underline-offset-2 decoration-brand-500 decoration-2 transition-colors"
+            >
+              click here
+            </Link>
+            .
+          </p>
+        </div>
+
+        <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Link
+            href="/track"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-lg shadow-brand-600/20 transition-all group"
+          >
+            <Search className="w-4 h-4" />
+            Check Application Status
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
         </div>
       </div>
     );
