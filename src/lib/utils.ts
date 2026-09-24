@@ -23,11 +23,11 @@ export function formatApplicationStatus(status: ApplicationStatus | string): {
   switch (status) {
     case "pending":
       return {
-        label: "Pending Review",
-        badgeClass: "bg-amber-100 text-amber-800 border-amber-200",
-        bgClass: "bg-amber-50",
-        borderClass: "border-amber-300",
-        textColor: "text-amber-700",
+        label: "Received",
+        badgeClass: "bg-emerald-100 text-emerald-800 border-emerald-200",
+        bgClass: "bg-emerald-50",
+        borderClass: "border-emerald-300",
+        textColor: "text-emerald-700",
       };
     case "under_review":
       return {

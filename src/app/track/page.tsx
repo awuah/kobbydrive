@@ -178,6 +178,41 @@ function TrackContent() {
                   </div>
                 </div>
 
+                {/* Status Notice Banner */}
+                {app.status === "pending" && (
+                  <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-start gap-3 shadow-xs">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-bold text-emerald-950">Application Successfully Received</h4>
+                      <p className="mt-0.5 text-emerald-800 leading-relaxed">
+                        Your application has been safely received and registered in the system. It is currently in the queue for administrative review by the KobbyDrive Free Driving School management. You do not need to apply again.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {app.status === "under_review" && (
+                  <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs sm:text-sm flex items-start gap-3 shadow-xs">
+                    <Clock className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-bold text-blue-950">Under Review</h4>
+                      <p className="mt-0.5 text-blue-800 leading-relaxed">
+                        Your application details and identification documents are currently being verified by the admissions committee.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {app.status === "approved" && (
+                  <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-start gap-3 shadow-xs">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-bold text-emerald-950">Application Approved</h4>
+                      <p className="mt-0.5 text-emerald-800 leading-relaxed">
+                        Congratulations! Your application has been approved. You will receive scheduling and practical session notifications via SMS.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Progress Timeline */}
                 <div className="py-2">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">
