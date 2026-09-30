@@ -1,44 +1,54 @@
 import { createClient } from "@supabase/supabase-js";
 
-function cleanEnv(val: string | undefined, fallback: string): string {
-  if (!val) return fallback;
+function cleanEnv(val: string | undefined): string {
+  if (!val) return "";
   let s = val.trim();
   if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
     s = s.slice(1, -1).trim();
   }
-  return s || fallback;
+  return s;
 }
 
-const DEFAULT_URL = "https://bsztwifzletpauxuuirg.supabase.co";
-const DEFAULT_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzenR3aWZ6bGV0cGF1eHV1aXJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3OTQyNTgsImV4cCI6MjA2ODM3MDI1OH0.8c0mftBtw_YQa3sUk-YVPgigIfUD7sOQQSQoztWw7LU";
-const DEFAULT_SERVICE_ROLE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzenR3aWZ6bGV0cGF1eHV1aXJnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Mjc5NDI1OCwiZXhwIjoyMDY4MzcwMjU4fQ.WTjER47lrnsRlJcuVcBb_XvrtYAuv4142OEBKn60A5s";
-
 const supabaseUrl = cleanEnv(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
-  DEFAULT_URL
+  process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
 );
 
 const supabaseAnonKey = cleanEnv(
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY,
-  DEFAULT_ANON_KEY
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
 );
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Client-side / public Supabase instance
+export const supabase = createClient(
+  supabaseUrl || "https://placeholder.supabase.co",
+  supabaseAnonKey || "placeholder-anon-key"
+);
 
+// Server-side privileged Supabase client with Service Role Key
 export function getServiceSupabase() {
   const serviceKey = cleanEnv(
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
       process.env.SUPABASE_SERVICE_KEY ||
-      process.env.SUPABASE_SECRET_KEY,
-    DEFAULT_SERVICE_ROLE_KEY
+      process.env.SUPABASE_SECRET_KEY
   );
 
-  return createClient(supabaseUrl, serviceKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
-  });
+  const url = cleanEnv(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+  );
+
+  if (!url || !serviceKey) {
+    console.error(
+      "Missing Supabase configuration: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is not set."
+    );
+  }
+
+  return createClient(
+    url || "https://placeholder.supabase.co",
+    serviceKey || supabaseAnonKey || "placeholder-key",
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    }
+  );
 }
