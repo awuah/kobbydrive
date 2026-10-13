@@ -223,10 +223,40 @@ export async function GET(req: NextRequest) {
     if (cachedStats && now - statsCachedAt < STATS_CACHE_TTL_MS) {
       stats = cachedStats;
     } else {
-      const { data: allStatsRows, count: totalDbCount } = await supabase
-        .from("kbdr_applications")
-        .select("status, gender, created_at", { count: "exact" })
-        .range(0, 49999);
+      const PAGE_CHUNK = 1000;
+      let allStatsRows: Array<{ status: string; gender: string; created_at: string }> = [];
+      let pageIdx = 0;
+      let hasMore = true;
+      let totalDbCount = 0;
+
+      while (hasMore) {
+        const fromIdx = pageIdx * PAGE_CHUNK;
+        const toIdx = fromIdx + PAGE_CHUNK - 1;
+        const { data: chunk, count, error: chunkErr } = await supabase
+          .from("kbdr_applications")
+          .select("status, gender, created_at", { count: pageIdx === 0 ? "exact" : undefined })
+          .range(fromIdx, toIdx);
+
+        if (chunkErr) {
+          console.error("Stats chunk fetch error:", chunkErr);
+          break;
+        }
+
+        if (pageIdx === 0 && typeof count === "number") {
+          totalDbCount = count;
+        }
+
+        if (chunk && chunk.length > 0) {
+          allStatsRows.push(...chunk);
+          if (chunk.length < PAGE_CHUNK) {
+            hasMore = false;
+          } else {
+            pageIdx++;
+          }
+        } else {
+          hasMore = false;
+        }
+      }
 
       const todayStr = new Date().toISOString().split("T")[0];
 

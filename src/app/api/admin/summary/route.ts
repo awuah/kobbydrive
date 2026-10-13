@@ -67,14 +67,35 @@ export async function GET(req: NextRequest) {
 
     const supabase = getServiceSupabase();
 
-    // Fetch all applications' electoral area & status for complete summary
-    const { data: records, error } = await supabase
-      .from("kbdr_applications")
-      .select("electoral_area, status")
-      .range(0, 49999);
+    // Fetch all applications' electoral area & status in chunks of 1000 for complete summary
+    const PAGE_CHUNK = 1000;
+    let records: Array<{ electoral_area: string; status: string }> = [];
+    let pageIdx = 0;
+    let hasMore = true;
 
-    if (error) {
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    while (hasMore) {
+      const fromIdx = pageIdx * PAGE_CHUNK;
+      const toIdx = fromIdx + PAGE_CHUNK - 1;
+      const { data: chunk, error: chunkErr } = await supabase
+        .from("kbdr_applications")
+        .select("electoral_area, status")
+        .range(fromIdx, toIdx);
+
+      if (chunkErr) {
+        console.error("Summary chunk fetch error:", chunkErr);
+        break;
+      }
+
+      if (chunk && chunk.length > 0) {
+        records.push(...chunk);
+        if (chunk.length < PAGE_CHUNK) {
+          hasMore = false;
+        } else {
+          pageIdx++;
+        }
+      } else {
+        hasMore = false;
+      }
     }
 
     // Initialize counts map for standard electoral areas
