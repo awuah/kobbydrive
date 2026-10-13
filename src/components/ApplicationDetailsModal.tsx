@@ -118,6 +118,26 @@ export default function ApplicationDetailsModal({
     }
   };
 
+  const handleGraduateNow = async () => {
+    setIsUpdating(true);
+    setUpdateSuccess(false);
+    try {
+      const graduationNote = adminNotes.trim()
+        ? adminNotes
+        : `Candidate officially graduated on ${new Date().toLocaleDateString("en-GB")}`;
+      setSelectedStatus("completed");
+      setAdminNotes(graduationNote);
+      await onUpdateStatus(application.id, "completed", graduationNote);
+      setApplication((prev) => ({ ...prev, status: "completed", admin_notes: graduationNote }));
+      setUpdateSuccess(true);
+      setTimeout(() => setUpdateSuccess(false), 3000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -439,7 +459,7 @@ export default function ApplicationDetailsModal({
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
               {updateSuccess ? (
                 <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
                   <CheckCircle2 className="w-4 h-4" /> Application updated successfully!
@@ -448,22 +468,36 @@ export default function ApplicationDetailsModal({
                 <span className="text-xs text-slate-500">Changes will be reflected immediately</span>
               )}
 
-              <button
-                type="button"
-                onClick={handleStatusSave}
-                disabled={isUpdating}
-                className="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold flex items-center gap-2 shadow-sm transition-colors disabled:opacity-50"
-              >
-                {isUpdating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Saving Changes...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4" /> Save Status & Notes
-                  </>
+              <div className="flex items-center gap-2">
+                {application.status !== "completed" && (
+                  <button
+                    type="button"
+                    onClick={handleGraduateNow}
+                    disabled={isUpdating}
+                    className="px-4 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+                    title="Mark this candidate as Graduated"
+                  >
+                    🎓 Set as Graduated
+                  </button>
                 )}
-              </button>
+
+                <button
+                  type="button"
+                  onClick={handleStatusSave}
+                  disabled={isUpdating}
+                  className="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold flex items-center gap-2 shadow-sm transition-colors disabled:opacity-50"
+                >
+                  {isUpdating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> Saving Changes...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" /> Save Status & Notes
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

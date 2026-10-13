@@ -103,6 +103,13 @@ export default function AdminActivityLogs({ passcode }: AdminActivityLogsProps) 
             <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Approved
           </span>
         );
+      case "APPLICATION_GRADUATED":
+      case "BATCH_GRADUATED":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-900 border border-green-300">
+            <CheckCircle2 className="w-3 h-3 text-green-700" /> 🎓 Graduated
+          </span>
+        );
       case "APPLICATION_REJECTED":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">

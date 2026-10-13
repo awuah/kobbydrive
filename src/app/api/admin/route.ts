@@ -396,9 +396,11 @@ export async function PATCH(req: NextRequest) {
 
       // Record Activity Log for batch update
       const appNumbers = (batchApps || []).map((a) => a.application_number).slice(0, 5).join(", ");
-      const batchActionType = status === "approved" ? "BATCH_APPROVED" : status === "rejected" ? "BATCH_REJECTED" : "BATCH_STATUS_UPDATE";
+      const batchActionType = status === "approved" ? "BATCH_APPROVED" : status === "rejected" ? "BATCH_REJECTED" : status === "completed" ? "BATCH_GRADUATED" : "BATCH_STATUS_UPDATE";
       const batchNote = status === "rejected"
         ? `Rejection Reason: ${admin_notes || "Unspecified"} (Batch of ${batchIds.length} candidate(s): ${appNumbers}${batchIds.length > 5 ? "..." : ""})`
+        : status === "completed"
+        ? `Batch graduated ${batchIds.length} candidate(s). Refs: ${appNumbers}${batchIds.length > 5 ? "..." : ""}`
         : `Batch updated ${batchIds.length} candidate(s) to "${status}". Refs: ${appNumbers}${batchIds.length > 5 ? "..." : ""}`;
 
       await recordAdminActivity({
@@ -478,12 +480,16 @@ export async function PATCH(req: NextRequest) {
         ? "APPLICATION_APPROVED"
         : status === "rejected"
         ? "APPLICATION_REJECTED"
+        : status === "completed"
+        ? "APPLICATION_GRADUATED"
         : admin_notes && !status
         ? "NOTES_UPDATED"
         : "STATUS_CHANGED";
 
     const logNotes = status === "rejected"
       ? `Rejection Reason: ${admin_notes || "No reason specified"}`
+      : status === "completed"
+      ? admin_notes || `Candidate marked as Graduated.`
       : admin_notes || `Status changed from ${currentApp?.status || "pending"} to ${status || currentApp?.status}`;
 
     // Record Activity Log

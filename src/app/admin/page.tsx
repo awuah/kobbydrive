@@ -98,6 +98,7 @@ export default function AdminDashboardPage() {
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showOperationsModal, setShowOperationsModal] = useState(false);
+  const [quickUpdatingId, setQuickUpdatingId] = useState<string | null>(null);
 
   // Authentication check & session validation
   useEffect(() => {
@@ -217,6 +218,28 @@ export default function AdminDashboardPage() {
         );
       }
       loadData();
+    }
+  };
+
+  const handleQuickGraduate = async (app: Application) => {
+    if (app.status === "completed") return;
+    const candidateName = `${app.title ? app.title + " " : ""}${app.surname} ${app.last_name}`.trim();
+    const confirmGraduate = window.confirm(
+      `Set ${candidateName} (${app.application_number}) as "Graduated"?`
+    );
+    if (!confirmGraduate) return;
+
+    setQuickUpdatingId(app.id);
+    try {
+      await handleUpdateStatus(
+        app.id,
+        "completed",
+        `Marked as Graduated by admin on ${new Date().toLocaleDateString("en-GB")}`
+      );
+    } catch (err) {
+      console.error("Quick graduate error:", err);
+    } finally {
+      setQuickUpdatingId(null);
     }
   };
 
@@ -704,6 +727,14 @@ export default function AdminDashboardPage() {
                 Set In Training
               </button>
               <button
+                onClick={() => handleBatchStatus("completed")}
+                disabled={batchLoading}
+                className="px-3 py-1.5 rounded-lg bg-green-700 hover:bg-green-800 text-white font-semibold transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
+                title="Mark all selected applicants as Graduated"
+              >
+                🎓 Set Graduated
+              </button>
+              <button
                 onClick={() => handleBatchStatus("approved")}
                 disabled={batchLoading}
                 className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-colors cursor-pointer"
@@ -882,12 +913,33 @@ export default function AdminDashboardPage() {
                       </td>
 
                       <td className="p-4 text-right">
-                        <button
-                          onClick={() => setSelectedApplication(app)}
-                          className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs inline-flex items-center gap-1.5 transition-colors"
-                        >
-                          <Eye className="w-3.5 h-3.5" /> View Dossier
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          {app.status === "completed" ? (
+                            <span className="px-2 py-1 rounded-lg bg-green-100 text-green-900 border border-green-300 font-bold text-[11px] inline-flex items-center gap-1 shadow-2xs">
+                              🎓 Graduated
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => handleQuickGraduate(app)}
+                              disabled={quickUpdatingId === app.id}
+                              className="px-2.5 py-1.5 rounded-lg bg-green-50 hover:bg-green-100 text-green-800 border border-green-300 font-bold text-xs inline-flex items-center gap-1 transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
+                              title="Set this applicant as Graduated"
+                            >
+                              {quickUpdatingId === app.id ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                "🎓 Graduate"
+                              )}
+                            </button>
+                          )}
+
+                          <button
+                            onClick={() => setSelectedApplication(app)}
+                            className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs inline-flex items-center gap-1.5 transition-colors"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> View Dossier
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

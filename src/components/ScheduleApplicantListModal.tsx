@@ -182,22 +182,24 @@ export default function ScheduleApplicantListModal({
                       <option value="unscheduled">⏳ Unscheduled</option>
                     </select>
 
-                    <button
-                      onClick={async () => {
-                        setUpdatingId(app.id);
-                        const nextStatus = app.status === "in_training" ? "completed" : "in_training";
-                        await onUpdateApplicantStatus(app.id, nextStatus);
-                        setUpdatingId(null);
-                      }}
-                      disabled={updatingId === app.id}
-                      className={"px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs " +
-                        (app.status === "in_training"
-                          ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300"
-                          : "bg-purple-100 text-purple-800 hover:bg-purple-200 border border-purple-300")
-                      }
-                    >
-                      {app.status === "in_training" ? "✓ Mark Complete" : "Set In Training"}
-                    </button>
+                    {app.status === "completed" ? (
+                      <span className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-green-100 text-green-900 border border-green-300">
+                        🎓 Graduated
+                      </span>
+                    ) : (
+                      <button
+                        onClick={async () => {
+                          setUpdatingId(app.id);
+                          await onUpdateApplicantStatus(app.id, "completed");
+                          setUpdatingId(null);
+                        }}
+                        disabled={updatingId === app.id}
+                        className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-green-50 hover:bg-green-100 text-green-800 border border-green-300 transition-all shadow-xs cursor-pointer"
+                        title="Set applicant as Graduated"
+                      >
+                        🎓 Set Graduated
+                      </button>
+                    )}
                   </div>
                 </div>
               );
