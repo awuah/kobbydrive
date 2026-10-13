@@ -1,4 +1,4 @@
-﻿# dependencies
+# dependencies
 /node_modules
 /.pnp
 .pnp.js
@@ -37,3 +37,8 @@ next-env.d.ts
 
 # supabase temp
 supabase/.temp
+
+# local data & voter files
+applicants/
+*.xlsx
+*.xls

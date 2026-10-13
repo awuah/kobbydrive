@@ -17,6 +17,11 @@ import {
   FileText,
   Search,
   ArrowRight,
+  Briefcase,
+  ShoppingBag,
+  GraduationCap,
+  Tv,
+  Percent
 } from "lucide-react";
 
 export default function HomePage() {
@@ -92,11 +97,175 @@ export default function HomePage() {
             </Link>
 
             <a
-              href="#application-notice"
+              href="#ecosystem-services"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 text-white font-bold text-sm border border-slate-700 transition-all shadow-md hover:border-slate-600"
             >
-              <Clock className="w-4 h-4 text-amber-400" /> View Review Notice
+              Explore Driving Programs <ArrowDown className="w-4 h-4 text-brand-400" />
             </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Ecosystem Hub */}
+      <section id="ecosystem-services" className="py-16 bg-slate-50 border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="text-xs font-bold uppercase tracking-wider text-brand-700 bg-brand-100 px-3 py-1 rounded-full">
+              KobbyDrive Ecosystem
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3 mb-2">
+              Explore Our Driving & Corporate Services
+            </h2>
+            <p className="text-sm text-slate-600">
+              Beyond free beginner lessons, discover our professional driver recruitment, retraining academy, exclusive club perks, and in-simulator ad network.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* 1. Driver Recruitment */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
+                  <Briefcase className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Driver Recruitment Portal</h3>
+                <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                  Private companies, corporate fleets, and families can recruit certified, background-checked, and simulator-vetted drivers for a transparent fee.
+                </p>
+                <div className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md inline-block mb-4">
+                  From GH₵ 150 Placement Fee
+                </div>
+              </div>
+              <Link
+                href="/recruitment"
+                className="inline-flex items-center justify-between text-xs font-bold text-slate-900 hover:text-brand-600 pt-3 border-t border-slate-100"
+              >
+                <span>Hire Certified Drivers</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            {/* 2. Drivers Club */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4">
+                  <Sparkles className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Drivers Club</h3>
+                <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                  Exclusive members-only benefits offering instant digital passes with discounts on Goil fuel, servicing at Japan Motors, insurance rebates, and 24/7 rescue.
+                </p>
+                <div className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md inline-block mb-4">
+                  Up to 15% Partner Discounts
+                </div>
+              </div>
+              <Link
+                href="/drivers-club"
+                className="inline-flex items-center justify-between text-xs font-bold text-slate-900 hover:text-brand-600 pt-3 border-t border-slate-100"
+              >
+                <span>Access Member Pass</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            {/* 3. Refresher Courses */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4">
+                  <GraduationCap className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Driver Refresher Courses</h3>
+                <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                  Retraining modules for experienced and corporate drivers covering defensive driving, night navigation, commercial fleet protocols, and heavy goods vehicles.
+                </p>
+                <div className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md inline-block mb-4">
+                  6 DVLA-Aligned Modules
+                </div>
+              </div>
+              <Link
+                href="/refresher-courses"
+                className="inline-flex items-center justify-between text-xs font-bold text-slate-900 hover:text-brand-600 pt-3 border-t border-slate-100"
+              >
+                <span>Browse Refresher Syllabus</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            {/* 4. Merchandise Store */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
+                  <ShoppingBag className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Merchandise Store</h3>
+                <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                  Shop official KobbyDrive branded polos, DVLA magnetic learner plates, high-visibility reflective vests, first aid kits, and official Highway Code books.
+                </p>
+                <div className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md inline-block mb-4">
+                  Mobile Money & Card Accepted
+                </div>
+              </div>
+              <Link
+                href="/store"
+                className="inline-flex items-center justify-between text-xs font-bold text-slate-900 hover:text-brand-600 pt-3 border-t border-slate-100"
+              >
+                <span>Shop Official Store</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            {/* 5. Simulator Ad Space */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center mb-4">
+                  <Tv className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Simulator Ad Network</h3>
+                <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                  Place digital ads on 3D virtual highway billboards and in-cockpit GPS navigation units inside our simulators. Reach 1,400+ focused drivers with 0% ad-blockers.
+                </p>
+                <div className="text-[11px] font-semibold text-cyan-700 bg-cyan-50 px-2.5 py-1 rounded-md inline-block mb-4">
+                  From GH₵ 450 / month
+                </div>
+              </div>
+              <Link
+                href="/simulator-ads"
+                className="inline-flex items-center justify-between text-xs font-bold text-slate-900 hover:text-brand-600 pt-3 border-t border-slate-100"
+              >
+                <span>Preview 3D Ad Simulator</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            {/* 6. Status Tracker & Admin */}
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-white/10 text-brand-400 flex items-center justify-center mb-4">
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">Application Tracking & Admin</h3>
+                <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                  Enrolled students can track their verification and training status. Administrators can review applications, manage cohorts, and inspect gender demographic breakdowns.
+                </p>
+                <div className="text-[11px] font-semibold text-brand-300 bg-white/10 px-2.5 py-1 rounded-md inline-block mb-4">
+                  Instant Reference Lookup
+                </div>
+              </div>
+              <div className="flex items-center gap-3 pt-3 border-t border-slate-700">
+                <Link
+                  href="/track"
+                  className="flex-1 py-2 px-3 text-center text-xs font-bold text-slate-950 bg-brand-400 rounded-lg hover:bg-brand-300 transition-colors"
+                >
+                  Track Status
+                </Link>
+                <Link
+                  href="/admin"
+                  className="flex-1 py-2 px-3 text-center text-xs font-bold text-white bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors"
+                >
+                  Admin Login
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>

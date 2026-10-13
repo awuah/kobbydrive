@@ -225,10 +225,16 @@ export async function GET(req: NextRequest) {
     } else {
       const { data: allStatsRows, count: totalDbCount } = await supabase
         .from("kbdr_applications")
-        .select("status, created_at", { count: "exact" })
+        .select("status, gender, created_at", { count: "exact" })
         .range(0, 49999);
 
       const todayStr = new Date().toISOString().split("T")[0];
+
+      const genderMetrics = {
+        registered: { male: 0, female: 0, total: 0 },
+        in_training: { male: 0, female: 0, total: 0 },
+        completed: { male: 0, female: 0, total: 0 },
+      };
 
       stats = {
         total: totalDbCount ?? allStatsRows?.length ?? 0,
@@ -239,16 +245,42 @@ export async function GET(req: NextRequest) {
         completed: 0,
         rejected: 0,
         todayCount: 0,
+        genderMetrics,
       };
 
       if (allStatsRows) {
         allStatsRows.forEach((row) => {
-          const s = row.status as keyof Omit<DashboardStats, "total" | "todayCount">;
+          const s = row.status as keyof Omit<DashboardStats, "total" | "todayCount" | "genderMetrics">;
           if (s && stats[s] !== undefined) {
             stats[s]++;
           }
           if (row.created_at && row.created_at.startsWith(todayStr)) {
             stats.todayCount++;
+          }
+
+          // Gender breakdown metrics for registered, in_training, and completed
+          const isFemale = row.gender?.toLowerCase() === "female";
+          if (isFemale) {
+            genderMetrics.registered.female++;
+          } else {
+            genderMetrics.registered.male++;
+          }
+          genderMetrics.registered.total++;
+
+          if (row.status === "in_training") {
+            if (isFemale) {
+              genderMetrics.in_training.female++;
+            } else {
+              genderMetrics.in_training.male++;
+            }
+            genderMetrics.in_training.total++;
+          } else if (row.status === "completed") {
+            if (isFemale) {
+              genderMetrics.completed.female++;
+            } else {
+              genderMetrics.completed.male++;
+            }
+            genderMetrics.completed.total++;
           }
         });
       }

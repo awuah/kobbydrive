@@ -36,9 +36,9 @@ export const SUPER_ADMIN_PASSCODES = [
 export interface AdminIdentity {
   id: string;
   name: string;
-  code: string;
-  role: "superadmin" | "admin";
-  color: string;
+  code?: string;
+  role: "superadmin" | "admin" | "system";
+  color?: string;
 }
 
 /**

@@ -119,6 +119,18 @@ export interface AdminActivityLog {
   created_at: string;
 }
 
+export interface GenderStatGroup {
+  male: number;
+  female: number;
+  total: number;
+}
+
+export interface GenderBreakdown {
+  registered: GenderStatGroup;
+  in_training: GenderStatGroup;
+  completed: GenderStatGroup;
+}
+
 export interface DashboardStats {
   total: number;
   pending: number;
@@ -128,6 +140,7 @@ export interface DashboardStats {
   completed: number;
   rejected: number;
   todayCount: number;
+  genderMetrics?: GenderBreakdown;
 }
 
 
