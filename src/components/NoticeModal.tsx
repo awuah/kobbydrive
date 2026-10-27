@@ -8,8 +8,32 @@ export default function NoticeModal() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    // Show modal automatically on page visit
-    setIsOpen(true);
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const token =
+      params.get("access") ||
+      params.get("token") ||
+      params.get("invite") ||
+      params.get("bypass") ||
+      params.get("vip");
+
+    if (token) {
+      // Check if bypass token is valid; if so, suppress notice modal
+      fetch(`/api/applications/verify-bypass?token=${encodeURIComponent(token)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (!data.valid) {
+            setIsOpen(true);
+          }
+        })
+        .catch(() => {
+          setIsOpen(true);
+        });
+    } else {
+      // Regular public visitor: show notice modal
+      setIsOpen(true);
+    }
   }, []);
 
   if (!isOpen) return null;

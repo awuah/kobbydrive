@@ -1,6 +1,7 @@
 import Link from "next/link";
 import ApplicationForm from "@/components/ApplicationForm";
 import NoticeModal from "@/components/NoticeModal";
+import RegistrationNoticeHeader from "@/components/RegistrationNoticeHeader";
 import {
   Car,
   CheckCircle2,
@@ -272,17 +273,7 @@ export default function HomePage() {
 
       {/* Main Notice / Form Section */}
       <section id="application-notice" className="py-12 sm:py-16 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10 space-y-2">
-          <span className="text-xs uppercase font-extrabold tracking-wider text-amber-800 bg-amber-100 px-3 py-1 rounded-full border border-amber-200">
-            Public Registration Notice
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Applications Currently Paused
-          </h2>
-          <p className="text-sm text-slate-600 max-w-xl mx-auto">
-            We are currently reviewing applications. If you have already registered, you can track the status of your enrollment.
-          </p>
-        </div>
+        <RegistrationNoticeHeader />
 
         <ApplicationForm />
       </section>

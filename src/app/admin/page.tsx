@@ -11,6 +11,7 @@ import RejectionReasonModal from "@/components/RejectionReasonModal";
 import ElectoralAreaSummaryModal from "@/components/ElectoralAreaSummaryModal";
 import ScheduleManagementModal from "@/components/ScheduleManagementModal";
 import OperationsDashboardModal from "@/components/OperationsDashboardModal";
+import PrivateLinkManagementModal from "@/components/PrivateLinkManagementModal";
 import { isSuperAdminPasscode, isValidAdminPasscode, getAdminIdentity, AdminIdentity } from "@/lib/auth";
 import {
   Shield,
@@ -38,6 +39,7 @@ import {
   Clock,
   Calendar,
   Car,
+  Link2,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
@@ -98,6 +100,7 @@ export default function AdminDashboardPage() {
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showOperationsModal, setShowOperationsModal] = useState(false);
+  const [showPrivateLinkModal, setShowPrivateLinkModal] = useState(false);
   const [quickUpdatingId, setQuickUpdatingId] = useState<string | null>(null);
 
   // Authentication check & session validation
@@ -564,6 +567,14 @@ export default function AdminDashboardPage() {
             className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-purple-600/20 cursor-pointer active:scale-95"
           >
             <Car className="w-3.5 h-3.5 text-purple-200" /> Operations & Testing
+          </button>
+
+          <button
+            onClick={() => setShowPrivateLinkModal(true)}
+            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+            title="Configure and copy private registration bypass link"
+          >
+            <Link2 className="w-3.5 h-3.5 text-cyan-400" /> Private Link
           </button>
 
           {isSuperAdmin && (
@@ -1083,6 +1094,14 @@ export default function AdminDashboardPage() {
             setShowOperationsModal(false);
             loadData();
           }}
+          adminPasscode={adminPasscode}
+        />
+      )}
+
+      {/* Private Registration Bypass Link Manager Modal */}
+      {showPrivateLinkModal && (
+        <PrivateLinkManagementModal
+          onClose={() => setShowPrivateLinkModal(false)}
           adminPasscode={adminPasscode}
         />
       )}

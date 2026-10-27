@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import SignaturePad from "./SignaturePad";
 import PassportPhotoUpload from "./PassportPhotoUpload";
 import {
@@ -26,6 +26,7 @@ import {
   Sun,
   Sunset,
   Search,
+  Sparkles,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import Link from "next/link";
@@ -92,6 +93,48 @@ export default function ApplicationForm() {
   } | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // Private bypass link states
+  const [bypassToken, setBypassToken] = useState<string | null>(null);
+  const [isBypassVerified, setIsBypassVerified] = useState(false);
+  const [bypassChecking, setBypassChecking] = useState(true);
+  const [bypassError, setBypassError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      setBypassChecking(false);
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const token =
+      params.get("access") ||
+      params.get("token") ||
+      params.get("invite") ||
+      params.get("bypass") ||
+      params.get("vip");
+
+    if (token) {
+      fetch(`/api/applications/verify-bypass?token=${encodeURIComponent(token)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.valid) {
+            setBypassToken(token);
+            setIsBypassVerified(true);
+          } else {
+            setBypassError(data.error || "The private registration link is invalid or has been disabled.");
+          }
+        })
+        .catch(() => {
+          setBypassError("Unable to verify private registration link.");
+        })
+        .finally(() => {
+          setBypassChecking(false);
+        });
+    } else {
+      setBypassChecking(false);
+    }
+  }, []);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -154,8 +197,14 @@ export default function ApplicationForm() {
     try {
       const res = await fetch("/api/applications", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        headers: {
+          "Content-Type": "application/json",
+          ...(bypassToken ? { "x-bypass-token": bypassToken } : {}),
+        },
+        body: JSON.stringify({
+          ...form,
+          ...(bypassToken ? { bypass_token: bypassToken } : {}),
+        }),
       });
 
       const data = await res.json();
@@ -355,9 +404,28 @@ export default function ApplicationForm() {
     );
   }
 
-  if (APPLICATIONS_CLOSED) {
+  if (bypassChecking) {
+    return (
+      <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm max-w-xl mx-auto flex items-center justify-center gap-3 text-slate-600 text-sm">
+        <Loader2 className="w-5 h-5 animate-spin text-brand-600" />
+        <span>Verifying registration access...</span>
+      </div>
+    );
+  }
+
+  if (APPLICATIONS_CLOSED && !isBypassVerified) {
     return (
       <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-xl max-w-3xl mx-auto space-y-6 text-center">
+        {bypassError && (
+          <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center gap-3 text-left">
+            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+            <div>
+              <span className="font-bold block">Private Link Notification:</span>
+              <span>{bypassError}</span>
+            </div>
+          </div>
+        )}
+
         <div className="w-16 h-16 rounded-2xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700 mx-auto shadow-sm">
           <Clock className="w-8 h-8" />
         </div>
@@ -400,6 +468,31 @@ export default function ApplicationForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
+      {isBypassVerified && (
+        <div className="bg-gradient-to-r from-emerald-500/10 via-brand-500/10 to-teal-500/10 border-2 border-emerald-500/40 rounded-2xl p-4 sm:p-6 shadow-sm">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20">
+              <Sparkles className="w-6 h-6 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs uppercase font-extrabold tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                  Private Link Active
+                </span>
+                <span className="text-xs font-semibold text-slate-500">
+                  Authorized Candidate Access
+                </span>
+              </div>
+              <h4 className="text-base sm:text-lg font-bold text-slate-900 mt-1">
+                You have been granted exclusive access to register
+              </h4>
+              <p className="text-xs text-slate-600 mt-0.5">
+                Public intake is paused, but your private invitation link is active. Please complete and submit your application below.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       {error && (
         <div className="p-4 sm:p-5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 flex items-start gap-3.5 shadow-sm">
           <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />

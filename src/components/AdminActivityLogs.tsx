@@ -22,6 +22,7 @@ import {
   Loader2,
   ShieldCheck,
   Crown,
+  Link2,
 } from "lucide-react";
 
 interface AdminActivityLogsProps {
@@ -145,6 +146,12 @@ export default function AdminActivityLogs({ passcode }: AdminActivityLogsProps) 
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">
             <Clock className="w-3 h-3 text-indigo-600" /> Logged In
+          </span>
+        );
+      case "PRIVATE_LINK_UPDATED":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-100 text-cyan-800 border border-cyan-300">
+            <Link2 className="w-3 h-3 text-cyan-600" /> Private Link Updated
           </span>
         );
       default:

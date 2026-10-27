@@ -3,24 +3,36 @@ import { getServiceSupabase } from "@/lib/supabase";
 import { generateApplicationNumber, parseTrainingDetails } from "@/lib/utils";
 import { sendApplicationReceivedSMS } from "@/lib/sms";
 import { sendApplicationEmailNotification } from "@/lib/email";
+import { isBypassTokenValid, incrementPrivateLinkUsage } from "@/lib/private-link";
 
 const APPLICATIONS_CLOSED = true;
 
 export async function POST(req: NextRequest) {
-  // Application intake is currently paused while applications are under review
-  if (APPLICATIONS_CLOSED) {
-    return NextResponse.json(
-      {
-        success: false,
-        error:
-          "We are currently reviewing applications and as such, no longer accepting new applications. You can check later for when we re-open for new applications. If you are already registered and want to check the status of your application, please check your status on the tracker.",
-      },
-      { status: 403 }
-    );
-  }
-
   try {
     const body = await req.json();
+
+    // Check if private bypass token is provided via header, URL query, or payload body
+    const bypassToken =
+      req.headers.get("x-bypass-token") ||
+      req.nextUrl.searchParams.get("access") ||
+      req.nextUrl.searchParams.get("token") ||
+      req.nextUrl.searchParams.get("invite") ||
+      body.bypass_token;
+
+    const isBypassValid = await isBypassTokenValid(bypassToken);
+
+    // If public applications are closed and no valid bypass token is provided, block submission
+    if (APPLICATIONS_CLOSED && !isBypassValid) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "We are currently reviewing applications and as such, no longer accepting new applications. You can check later for when we re-open for new applications. If you are already registered and want to check the status of your application, please check your status on the tracker.",
+        },
+        { status: 403 }
+      );
+    }
+
     const {
       surname,
       last_name,
@@ -156,7 +168,7 @@ export async function POST(req: NextRequest) {
           passport_photo,
           signature_data,
           status: "pending",
-          admin_notes: "",
+          admin_notes: isBypassValid ? "[Registered via Private Bypass Link]" : "",
         },
       ])
       .select()
@@ -170,14 +182,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (isBypassValid) {
+      try {
+        await incrementPrivateLinkUsage();
+      } catch (incErr) {
+        console.warn("Could not increment private link usage count:", incErr);
+      }
+    }
+
     // Log the event
     await supabase.from("kbdr_application_logs").insert([
       {
         application_id: data.id,
         action: "application_submitted",
         new_status: "pending",
-        notes: `Candidate submitted public driving school application. Schedule: ${rawSchedule}.`,
-        performed_by: "applicant",
+        notes: isBypassValid
+          ? `Candidate submitted application via Authorized Private Link (Token: ${bypassToken}). Schedule: ${rawSchedule}.`
+          : `Candidate submitted public driving school application. Schedule: ${rawSchedule}.`,
+        performed_by: isBypassValid ? "private_link" : "applicant",
       },
     ]);
 
