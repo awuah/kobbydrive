@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShieldCheck, Heart, Car, Sparkles, Briefcase, GraduationCap, ShoppingBag, Tv } from "lucide-react";
+import { ShieldCheck, Heart, Car, Sparkles, Briefcase, GraduationCap, ShoppingBag, Tv, BookOpen } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -38,6 +38,12 @@ export default function Footer() {
               <li>
                 <Link href="/" className="hover:text-white transition-colors">
                   Free Driving School
+                </Link>
+              </li>
+              <li>
+                <Link href="/theory-test" className="hover:text-white transition-colors flex items-center gap-1.5 text-brand-300 font-semibold">
+                  <BookOpen className="w-3.5 h-3.5 text-brand-400" />
+                  Theory Exam Portal
                 </Link>
               </li>
               <li>

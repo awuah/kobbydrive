@@ -12,6 +12,7 @@ import {
   ShoppingBag, 
   GraduationCap, 
   Tv, 
+  BookOpen,
   Menu, 
   X,
   ChevronDown
@@ -23,6 +24,7 @@ export default function Header() {
   const [programsOpen, setProgramsOpen] = useState(false);
 
   const navLinks = [
+    { href: "/theory-test", label: "Theory Exam", icon: BookOpen },
     { href: "/recruitment", label: "Hire Drivers", icon: Briefcase },
     { href: "/drivers-club", label: "Drivers Club", icon: Sparkles },
     { href: "/refresher-courses", label: "Refresher Courses", icon: GraduationCap },

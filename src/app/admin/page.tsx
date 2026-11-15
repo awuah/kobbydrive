@@ -12,6 +12,7 @@ import ElectoralAreaSummaryModal from "@/components/ElectoralAreaSummaryModal";
 import ScheduleManagementModal from "@/components/ScheduleManagementModal";
 import OperationsDashboardModal from "@/components/OperationsDashboardModal";
 import PrivateLinkManagementModal from "@/components/PrivateLinkManagementModal";
+import TheoryTestManagementModal from "@/components/TheoryTestManagementModal";
 import { isSuperAdminPasscode, isValidAdminPasscode, getAdminIdentity, AdminIdentity } from "@/lib/auth";
 import {
   Shield,
@@ -40,6 +41,7 @@ import {
   Calendar,
   Car,
   Link2,
+  BookOpen,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
@@ -101,6 +103,7 @@ export default function AdminDashboardPage() {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showOperationsModal, setShowOperationsModal] = useState(false);
   const [showPrivateLinkModal, setShowPrivateLinkModal] = useState(false);
+  const [showTheoryModal, setShowTheoryModal] = useState(false);
   const [quickUpdatingId, setQuickUpdatingId] = useState<string | null>(null);
 
   // Authentication check & session validation
@@ -277,6 +280,50 @@ export default function AdminDashboardPage() {
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setBatchLoading(false);
+    }
+  };
+
+  const handleBatchTheoryInvite = async () => {
+    if (selectedIds.length === 0) return;
+    const confirmInvite = window.confirm(
+      `Invite ${selectedIds.length} selected candidate(s) to take the Ghana Driver's Guide Theory Exam?\n\nThey will be authorized to access the online test. An SMS with their direct test link will be dispatched.`
+    );
+    if (!confirmInvite) return;
+
+    setBatchLoading(true);
+    try {
+      const res = await fetch("/api/theory/admin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminPasscode}`,
+        },
+        body: JSON.stringify({
+          action: "INVITE_APPLICANTS",
+          applicantIds: selectedIds,
+          sendSms: true,
+          customNote: "Batch theory test invitation from dashboard",
+        }),
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        handleLogout();
+        return;
+      }
+
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message || `Successfully invited ${selectedIds.length} candidate(s)!`);
+        setSelectedIds([]);
+        loadData();
+      } else {
+        alert(data.error || "Failed to invite applicants.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Failed to invite applicants.");
     } finally {
       setBatchLoading(false);
     }
@@ -570,6 +617,14 @@ export default function AdminDashboardPage() {
           </button>
 
           <button
+            onClick={() => setShowTheoryModal(true)}
+            className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-indigo-600/20 cursor-pointer active:scale-95"
+            title="Ghana Driver's Guide Theory Exam results and student invitations"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-indigo-200" /> Theory Exam & Scores
+          </button>
+
+          <button
             onClick={() => setShowPrivateLinkModal(true)}
             className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
             title="Configure and copy private registration bypass link"
@@ -736,6 +791,14 @@ export default function AdminDashboardPage() {
                 className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold transition-colors cursor-pointer"
               >
                 Set In Training
+              </button>
+              <button
+                onClick={handleBatchTheoryInvite}
+                disabled={batchLoading}
+                className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
+                title="Authorize and send theory test link SMS to selected candidates"
+              >
+                📝 Invite to Theory Test
               </button>
               <button
                 onClick={() => handleBatchStatus("completed")}
@@ -1102,6 +1165,17 @@ export default function AdminDashboardPage() {
       {showPrivateLinkModal && (
         <PrivateLinkManagementModal
           onClose={() => setShowPrivateLinkModal(false)}
+          adminPasscode={adminPasscode}
+        />
+      )}
+
+      {/* Ghana Driver's Guide Theory Examination & Score Monitoring Modal */}
+      {showTheoryModal && (
+        <TheoryTestManagementModal
+          onClose={() => {
+            setShowTheoryModal(false);
+            loadData();
+          }}
           adminPasscode={adminPasscode}
         />
       )}

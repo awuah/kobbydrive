@@ -100,3 +100,32 @@ export async function sendApplicationApprovedSMS(applicant: {
 
   return await sendArkeselSMS(applicant.phone_number, message);
 }
+
+/**
+ * Sends congratulations SMS when an applicant passes the Ghana Drivers Guide Theory Examination (>= 80%)
+ */
+export async function sendTheoryTestPassedSMS(applicant: {
+  name: string;
+  phone_number: string;
+  application_number: string;
+  scorePercentage: number;
+}) {
+  const message = `Congratulations ${applicant.name}! You scored ${applicant.scorePercentage}% in the Kobby Free Driving School Theory Exam (Pass Mark: 80%). Please be on alert for an upcoming SMS with your scheduled date and time for SIMULATOR TRAINING at our center. The simulator training will help you build muscle memory for steering, pedal control, and vehicle handling before your on-road car training. Keep your phone on. Thank you!`;
+
+  return await sendArkeselSMS(applicant.phone_number, message);
+}
+
+/**
+ * Sends an invitation SMS to an applicant or cohort inviting them to take the theory test
+ */
+export async function sendTheoryTestInvitationSMS(applicant: {
+  name: string;
+  phone_number: string;
+  application_number: string;
+  testUrl: string;
+}) {
+  const message = `Hello ${applicant.name}, you have been selected and invited to take the Kobby Free Driving School Theory Exam. Please click this link to take your test: ${applicant.testUrl} (Pass mark is 80%). You can re-take the test if needed. Good luck!`;
+
+  return await sendArkeselSMS(applicant.phone_number, message);
+}
+

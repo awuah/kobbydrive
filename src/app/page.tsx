@@ -252,19 +252,27 @@ export default function HomePage() {
                   Instant Reference Lookup
                 </div>
               </div>
-              <div className="flex items-center gap-3 pt-3 border-t border-slate-700">
+              <div className="flex flex-col gap-2 pt-3 border-t border-slate-700">
                 <Link
-                  href="/track"
-                  className="flex-1 py-2 px-3 text-center text-xs font-bold text-slate-950 bg-brand-400 rounded-lg hover:bg-brand-300 transition-colors"
+                  href="/theory-test"
+                  className="w-full py-2 px-3 text-center text-xs font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 transition-colors flex items-center justify-center gap-1.5 shadow-xs"
                 >
-                  Track Status
+                  <BookOpen className="w-3.5 h-3.5" /> Ghana Theory Exam Portal
                 </Link>
-                <Link
-                  href="/admin"
-                  className="flex-1 py-2 px-3 text-center text-xs font-bold text-white bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors"
-                >
-                  Admin Login
-                </Link>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href="/track"
+                    className="flex-1 py-1.5 px-3 text-center text-xs font-bold text-slate-950 bg-brand-400 rounded-lg hover:bg-brand-300 transition-colors"
+                  >
+                    Track Status
+                  </Link>
+                  <Link
+                    href="/admin"
+                    className="flex-1 py-1.5 px-3 text-center text-xs font-bold text-white bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors"
+                  >
+                    Admin Login
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
