@@ -230,7 +230,7 @@ export default function TheoryTestManagementModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-slate-100 rounded-3xl shadow-2xl border border-slate-300 w-full max-w-[1240px] h-[92vh] flex flex-col overflow-hidden">
+      <div className="bg-[#FAF7F2] rounded-3xl shadow-2xl border border-stone-300 w-full max-w-[1240px] h-[92vh] flex flex-col overflow-hidden">
         {/* Header Bar */}
         <div className="p-4 sm:p-5 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-4 border-b border-slate-800">
           <div className="flex items-center gap-3">
@@ -369,7 +369,7 @@ export default function TheoryTestManagementModal({
         </div>
 
         {/* Tab Body */}
-        <div className="flex-1 overflow-y-auto p-4 bg-slate-100">
+        <div className="flex-1 overflow-y-auto p-4 bg-[#FAF7F2]">
           {/* TAB 1: Test Scores */}
           {activeTab === "results" && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
